@@ -1,0 +1,37 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    DirectoryIndex index.html index.php
+
+    RewriteEngine On
+
+    # Ignora completamente o favicon no motor de reescrita para evitar loops e 404s fantasmas
+    RewriteCond %{REQUEST_URI} ^/favicon\.jpg [NC]
+    RewriteRule ^ - [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # 1. ENVIAR PARA O LARAVEL (index.php)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} ^/(api|sanctum) [NC]
+    RewriteRule ^ index.php [L]
+
+    # 2. ENVIAR PARA A SPA (index.html)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.html [L]
+</IfModule>
