@@ -1,0 +1,50 @@
+:root {
+    --rosa-pastel: #F7D6D0;
+    --rosa-pastel-hover: #E8C4BD;
+    --verde-salvia: #DCE5DD;
+    --off-white: #FAFAFA;
+    --texto-escuro: #4A4A4A;
+}
+
+body {
+    background-color: var(--verde-salvia);
+    color: var(--texto-escuro);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Customização dos Cards e Botões */
+.card-casamento {
+    background-color: var(--off-white);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.btn-casamento {
+    background-color: var(--rosa-pastel);
+    color: var(--texto-escuro);
+    font-weight: 600;
+    border: none;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-casamento:hover {
+    background-color: var(--rosa-pastel-hover);
+    color: var(--texto-escuro);
+    transform: translateY(-2px);
+}
+
+.navbar-casamento {
+    background-color: var(--off-white) !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.navbar-casamento .nav-link {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.navbar-casamento .nav-link:hover {
+    color: var(--rosa-pastel-hover) !important;
+}
