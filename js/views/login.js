@@ -10,6 +10,10 @@ export default function LoginView() {
             e.preventDefault();
             const username = document.getElementById('username').value; // Captura o usuário
             const password = document.getElementById('password').value;
+            const btn = form.querySelector('button[type="submit"]');
+            
+            btn.disabled = true;
+            btn.innerText = 'Verificando...';
             
             try {
                 // Modificado no api.js para enviar o username
@@ -24,8 +28,13 @@ export default function LoginView() {
                     window.history.pushState({}, '', '/confirmar-presenca');
                 }
 
+                // 3. ATENÇÃO: Força o disparo do roteador do app.js de forma imediata
+                window.dispatchEvent(new Event('popstate'));
+
             } catch (err) {
                 alert('Erro ao realizar login. Verifique as credenciais.');
+                btn.disabled = false;
+                btn.innerText = 'Entrar';
             }
         });
     }, 100);
