@@ -11,7 +11,7 @@ const fetchOptions = {
 export const API = {
     // 1. Inicializa o cookie CSRF do Laravel (Obrigatório antes do Login)
     async initCsrf() {
-        //await fetch('/sanctum/csrf-cookie', { method: 'GET', ...fetchOptions });
+        await fetch('/sanctum/csrf-cookie', { method: 'GET', ...fetchOptions });
     },
     
     // Método novo que os noivos usarão a partir do painel para gerar convidados
