@@ -1,0 +1,90 @@
+name: casamento
+
+# Ambiente compartilhado entre os serviços do Laravel.
+# As variáveis de ambiente do Compose têm precedência sobre o laravel_core/.env.
+x-app-env: &app-env
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_URL: "http://localhost"
+  DB_CONNECTION: mysql
+  DB_HOST: db
+  DB_PORT: "3306"
+  DB_DATABASE: casamento
+  DB_USERNAME: casamento
+  DB_PASSWORD: casamento
+  # Domínios permitidos pelo Sanctum para cookie/sessão da SPA
+  SANCTUM_STATEFUL_DOMAINS: "localhost,127.0.0.1,localhost:80,127.0.0.1:80"
+  SESSION_DOMAIN: "localhost"
+  SESSION_DRIVER: database
+  QUEUE_CONNECTION: database
+  CACHE_STORE: database
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: casamento_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: casamento
+      MYSQL_USER: casamento
+      MYSQL_PASSWORD: casamento
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      # Porta do host (à esquerda) -> porta do container (à direita)
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Executa as migrations do banco toda vez que os serviços sobem
+  # (idempotente: `php artisan migrate` só aplica o que ainda não foi aplicado).
+  migrate:
+    build: ./docker/web
+    container_name: casamento_migrate
+    restart: "no"
+    working_dir: /var/www/html/laravel_core
+    volumes:
+      - ./:/var/www/html
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "php artisan migrate --force && echo 'Migrations executadas com sucesso!'"]
+
+  web:
+    build: ./docker/web
+    container_name: casamento_web
+    restart: unless-stopped
+    working_dir: /var/www/html/laravel_core
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      # A SPA + API ficam disponíveis em http://localhost
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+    environment: *app-env
+
+  # Ferramenta opcional para inspecionar o banco:
+  # habilite com: docker compose --profile tools up -d  (http://localhost:8081)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    profiles: ["tools"]
+    container_name: casamento_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      UPLOAD_LIMIT: 64M
+
+volumes:
+  dbdata:
