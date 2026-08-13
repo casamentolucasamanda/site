@@ -8,54 +8,53 @@ function getCookie(name) {
     return '';
 }
 
-// Objeto global de opções (let para permitir reatribuição)
-let fetchOptions = {
-    credentials: 'include',
-    headers: {
+function getFetchOptions(extraHeaders = {}) {
+    const headers = {
         'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...extraHeaders
+    };
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (xsrfToken) {
+        headers['X-XSRF-TOKEN'] = xsrfToken;
     }
-};
+    return {
+        credentials: 'include',
+        headers
+    };
+}
 
 export const API = {
-    // 0. Atualiza o objeto fetchOptions com o token atualizado do cookie
-    buildFetchOptions() {
-        fetchOptions = {
-            credentials: 'include',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-XSRF-TOKEN': getCookie('XSRF-TOKEN') // Busca o token atualizado
-            }
-        };
-    },
-
-    // 1. Inicializa o cookie CSRF do Laravel (Obrigatório antes do Login)
+    // Inicializa o cookie CSRF do Laravel caso ainda não exista no navegador
     async initCsrf() {
-        // Usa o fetchOptions padrão inicial sem token, pois o cookie ainda não existe
-        await fetch('/sanctum/csrf-cookie', { method: 'GET', ...fetchOptions });
-        // Sincroniza o token logo após receber o cookie do Laravel
-        this.buildFetchOptions();
+        if (!getCookie('XSRF-TOKEN')) {
+            await fetch('/sanctum/csrf-cookie', {
+                credentials: 'include',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+        }
     },
     
-    // Método novo que os noivos usarão a partir do painel para gerar convidados
+    // Método para os noivos registrarem novos convidados
     async cadastrarConvidado(nome, usuario, senha) {
-        await this.initCsrf();
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/usuarios/cadastrar', {
-            ...fetchOptions,
+            ...options,
             method: 'POST',
             body: JSON.stringify({ name: nome, username: usuario, password: senha, role: 'convidado' })
         });
         return response.json();
     },
 
-    // 2. Realiza o Login
+    // Autentica o usuário (convidados ou noivos)
     async login(username, password) {
         await this.initCsrf();
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/login', {
-            ...fetchOptions,
+            ...options,
             method: 'POST',
             body: JSON.stringify({ username, password })
         });
@@ -68,52 +67,101 @@ export const API = {
         return response.json();
     },
     
-    // 3. Finaliza a sessão do usuário no servidor
+    // Finaliza a sessão no servidor
     async logout() {
-        await this.initCsrf();
-        const response = await fetch('/api/logout', { ...fetchOptions, method: 'POST' });
-        localStorage.removeItem('is_logged'); // Limpa o estado local da SPA
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch('/api/logout', { ...options, method: 'POST' });
+        localStorage.removeItem('is_logged');
         return response.json();
     },
     
-    // 4. Salva a confirmação de presença do convidado logado
-    async confirmarPresenca(acompanhantes, observacoes) {
-        await this.initCsrf();
+    // Busca resposta atual da presença do usuário logado
+    async getPresenca() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/presenca', { ...options, method: 'GET' });
+        if (response.status === 401) throw new Error('Não autenticado');
+        return response.json();
+    },
+
+    // Confirma ou atualiza a presença (sem acompanhantes)
+    async confirmarPresenca(confirmado, observacoes) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/confirmar-presenca', {
-            ...fetchOptions,
+            ...options,
             method: 'POST',
-            body: JSON.stringify({ acompanhantes, observacoes })
+            body: JSON.stringify({ confirmado, observacoes })
         });
         if (response.status === 401) throw new Error('Não autenticado');
         return response.json();
     },
 
-    // 5. Reserva um item da lista de presentes para o convidado logado
+    // Busca a lista de presentes cadastrada no banco de dados
+    async getPresentes() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/presentes', { ...options, method: 'GET' });
+        if (response.status === 401) throw new Error('Não autenticado');
+        return response.json();
+    },
+
+    // Reserva presente e retorna dados para pagamento via PIX (QR Code)
     async escolherPresente(presenteId) {
-        await this.initCsrf();
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/escolher-presente', {
-            ...fetchOptions,
+            ...options,
             method: 'POST',
             body: JSON.stringify({ presente_id: presenteId })
         });
         if (response.status === 401) throw new Error('Não autenticado');
-        return response.json();
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.mensagem || 'Erro ao reservar presente.');
+        }
+        return data;
     },
 
-    // 6. Busca os dados consolidados do painel exclusivo dos noivos (Lucas & Amanda)
+    // Resumo exclusivo dos noivos
     async getDashboardNoivos() {
-        await this.initCsrf();
-        const response = await fetch('/api/painel-noivos/resumo', { ...fetchOptions, method: 'GET' });
+        const options = getFetchOptions();
+        const response = await fetch('/api/painel-noivos/resumo', { ...options, method: 'GET' });
         if (response.status === 401) throw new Error('Não autenticado');
         if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
         return response.json();
     },
 
-    // 7. Busca os dados de uma rota protegida (Ex: Lista de Presentes/Dashboard)
+    // Dados de votos/presença
     async getDashboardData() {
-        await this.initCsrf();
-        const response = await fetch('/api/votos', { ...fetchOptions, method: 'GET' });
+        const options = getFetchOptions();
+        const response = await fetch('/api/votos', { ...options, method: 'GET' });
         if (response.status === 401) throw new Error('Não autenticado');
+        return response.json();
+    },
+
+    // Informações do local da recepção
+    async getLocal() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/local', { ...options, method: 'GET' });
+        if (!response.ok) {
+            throw new Error('Erro ao carregar as informações do local');
+        }
+        return response.json();
+    },
+
+    // Checagem de usuário logado
+    async testarLogin() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/user', {
+            ...options,
+            method: 'GET'
+        });
+
+        if (response.status === 401) {
+            throw new Error('Não autenticado (401 Unauthorized)');
+        }
+
+        if (!response.ok) {
+            throw new Error(`Erro na requisição: ${response.status}`);
+        }
+
         return response.json();
     }
 };

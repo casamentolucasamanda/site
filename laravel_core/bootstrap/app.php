@@ -18,7 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'noivos' => \App\Http\Middleware\CheckNoivosRole::class,
         ]);
-        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

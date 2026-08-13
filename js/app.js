@@ -35,7 +35,7 @@ function atualizarMenu() {
     }
 }
 
-const router = () => {
+const router = async () => {
     const path = window.location.pathname;
     const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/dashboard'];
     
@@ -46,7 +46,8 @@ const router = () => {
     }
 
     const view = routes[path] || (() => '<h2 class="text-center mt-5">Página não encontrada</h2>');
-    document.getElementById('app').innerHTML = view();
+    const htmlContent = await view();
+    document.getElementById('app').innerHTML = htmlContent;
     atualizarMenu(); // Ajusta os botões após a troca de tela
 };
 

@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         // Ativa o seeder de usuários criado acima
         $this->call([
             UserSeeder::class,
+            PresenteSeeder::class,
         ]);
     }
 }

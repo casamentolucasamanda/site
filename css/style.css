@@ -1,50 +1,104 @@
 :root {
-    --rosa-pastel: #F7D6D0;
-    --rosa-pastel-hover: #E8C4BD;
-    --verde-salvia: #DCE5DD;
-    --off-white: #FAFAFA;
-    --texto-escuro: #4A4A4A;
+    --rosa-pastel: #f7d6d0;
+    --rosa-pastel-hover: #eec2b9;
+    --verde-salvia: #e8efe9;
+    --off-white: #fffdfa;
+    --dourado-suave: #d4af37;
+    --texto-escuro: #3d3d3d;
+    --texto-suave: #6c757d;
+    --sombra-suave: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 body {
     background-color: var(--verde-salvia);
     color: var(--texto-escuro);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Customização dos Cards e Botões */
-.card-casamento {
-    background-color: var(--off-white);
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+h1, h2, h3, h4, h5, .serif-font {
+    font-family: 'Playfair Display', serif;
 }
 
-.btn-casamento {
-    background-color: var(--rosa-pastel);
+.brand-cursive {
+    font-family: 'Great Vibes', cursive;
+    font-size: 1.8rem;
     color: var(--texto-escuro);
-    font-weight: 600;
-    border: none;
-    border-radius: 25px;
-    transition: all 0.3s ease;
 }
 
-.btn-casamento:hover {
-    background-color: var(--rosa-pastel-hover);
-    color: var(--texto-escuro);
-    transform: translateY(-2px);
-}
-
+/* Customização de Navbar */
 .navbar-casamento {
-    background-color: var(--off-white) !important;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: rgba(255, 253, 250, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
 }
 
 .navbar-casamento .nav-link {
     font-weight: 500;
-    transition: color 0.2s ease;
+    color: var(--texto-escuro) !important;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
 }
 
 .navbar-casamento .nav-link:hover {
-    color: var(--rosa-pastel-hover) !important;
+    color: var(--dourado-suave) !important;
+    transform: translateY(-1px);
+}
+
+/* Customização dos Cards */
+.card-casamento {
+    background-color: var(--off-white);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    border-radius: 20px;
+    box-shadow: var(--sombra-suave);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-casamento:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Botões Customizados */
+.btn-casamento {
+    background: linear-gradient(135deg, var(--rosa-pastel), #fcdbd5);
+    color: var(--texto-escuro);
+    font-weight: 600;
+    border: none;
+    border-radius: 30px;
+    padding: 0.6rem 1.8rem;
+    box-shadow: 0 4px 12px rgba(247, 214, 208, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-casamento:hover {
+    background: linear-gradient(135deg, var(--rosa-pastel-hover), #f7cac2);
+    color: var(--texto-escuro);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(247, 214, 208, 0.6);
+}
+
+/* Form inputs styling */
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--rosa-pastel);
+    box-shadow: 0 0 0 0.25rem rgba(247, 214, 208, 0.35);
+}
+
+/* Footer / Dividers */
+.divider-dourado {
+    height: 2px;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, var(--dourado-suave), transparent);
+    margin: 1.5rem auto;
 }

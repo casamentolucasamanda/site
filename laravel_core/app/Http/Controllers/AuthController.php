@@ -16,18 +16,21 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'username' => ['required', 'string'], // Valida o campo de texto do usuário
+            'username' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
         if (Auth::attempt($credentials)) {
-            // $request->session()->regenerate();
+            $request->session()->regenerate();
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
 
             return response()->json([
                 'status' => 'sucesso',
                 'usuario' => [
-                    'name' => Auth::user()->name,
-                    'role' => Auth::user()->role,
+                    'name' => $user->name,
+                    'role' => $user->role,
                 ]
             ]);
         }
@@ -46,7 +49,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['string', 'in:convidado,noivos'] // Permite criar outros perfis se necessário
+            'role' => ['string', 'in:convidado,noivos']
         ]);
 
         $novoUsuario = User::create([
