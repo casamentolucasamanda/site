@@ -9,6 +9,8 @@ class Local extends Model
 {
     use HasUuids;
 
+    protected $table = 'locais';
+
     protected $fillable = [
         'nome',
         'endereco',
