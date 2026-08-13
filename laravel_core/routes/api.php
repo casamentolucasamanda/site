@@ -129,11 +129,22 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/local', function () {
+        $local = App\Models\Local::first();
+
+        if (!$local) {
+            return response()->json([
+                'nome' => null,
+                'endereco' => null,
+                'cidade_uf' => null,
+                'mapa_iframe' => null,
+            ]);
+        }
+
         return response()->json([
-            'nome' => 'Espaço Jardim dos Sonhos',
-            'endereco' => 'Avenida das Flores, nº 1500 - Bairro Primavera',
-            'cidade_uf' => 'Cidade do Casamento - UF',
-            'mapa_iframe' => '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3969.3179261899127!2d-35.263889!3d-5.910000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwNTQnMzYuMCJTIDM1wrAxNSc1MC4wIlc!5e0!3m2!1wpt-BR!2sbr!4v1600000000000!5m2!1wpt-BR!2sbr" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'
+            'nome' => $local->nome,
+            'endereco' => $local->endereco,
+            'cidade_uf' => $local->cidade_uf,
+            'mapa_iframe' => $local->mapa_iframe,
         ]);
     });
 });
