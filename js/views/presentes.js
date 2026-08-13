@@ -1,68 +1,184 @@
 import { API } from '../api.js';
 
-// Lista simulada de presentes com IDs baseados no padrão UUID gerado pelo banco
-const listaPresentes = [
-    { id: '11111111-2222-3333-4444-555555555555', nome: 'Cotas para Lua de Mel', desc: 'Ajude os noivos a curtirem a viagem dos sonhos.', valor: 'R$ 250,00' },
-    { id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', nome: 'Jogo de Panelas Antiaderentes', desc: 'Para os jantares especiais na casa nova.', valor: 'R$ 380,00' },
-    { id: '99999999-8888-7777-6663-555555555555', nome: 'Cafeteira Elétrica', desc: 'Garantia de café fresquinho todas as manhãs.', valor: 'R$ 190,00' }
-];
+function abrirModalPix(dados) {
+    let modalEl = document.getElementById('modal-pix');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.id = 'modal-pix';
+        modalEl.className = 'modal fade';
+        modalEl.tabIndex = -1;
+        document.body.appendChild(modalEl);
+    }
 
-export default function PresentesView() {
+    modalEl.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 text-center position-relative">
+                    <h5 class="modal-title w-100 serif-font fw-bold text-success">🎁 Pagamento do Presente via PIX</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <p class="text-muted mb-1 fs-6">Você reservou:</p>
+                    <h5 class="fw-bold text-dark mb-1">${dados.presente.nome}</h5>
+                    <span class="badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill mb-3">${dados.presente.valor}</span>
+                    
+                    <div class="my-3 p-3 bg-light rounded-3 d-inline-block border">
+                        <img src="${dados.pix.qr_code_url}" alt="QR Code PIX" class="img-fluid rounded shadow-sm" style="max-width: 220px;">
+                    </div>
+
+                    <div class="text-start mt-3">
+                        <label class="form-label fw-semibold small text-muted">Chave PIX (E-mail):</label>
+                        <input type="text" readonly class="form-control form-control-sm mb-3 bg-white" value="${dados.pix.chave}">
+                        
+                        <label class="form-label fw-semibold small text-muted">Código PIX Copia e Cola:</label>
+                        <div class="input-group">
+                            <textarea id="pix-copia-cola" readonly class="form-control form-control-sm bg-white" rows="2" style="font-size: 0.8rem;">${dados.pix.payload}</textarea>
+                            <button id="btn-copiar-pix" class="btn btn-outline-secondary btn-sm px-3" type="button">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                    <button type="button" class="btn btn-casamento px-5" data-bs-dismiss="modal">Concluído</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    setTimeout(() => {
+        const btnCopiar = document.getElementById('btn-copiar-pix');
+        const txtPix = document.getElementById('pix-copia-cola');
+        if (btnCopiar && txtPix) {
+            btnCopiar.addEventListener('click', () => {
+                txtPix.select();
+                navigator.clipboard.writeText(txtPix.value).then(() => {
+                    btnCopiar.innerText = 'Copiado! ✓';
+                    btnCopiar.classList.replace('btn-outline-secondary', 'btn-success');
+                    setTimeout(() => {
+                        btnCopiar.innerText = 'Copiar';
+                        btnCopiar.classList.replace('btn-success', 'btn-outline-secondary');
+                    }, 3000);
+                });
+            });
+        }
+    }, 100);
+}
+
+export default async function PresentesView() {
+    let presentes = [];
+    let mensagens = [];
+    try {
+        [presentes, mensagens] = await Promise.all([
+            API.getPresentes(),
+            API.getMensagens().catch(() => [])
+        ]);
+    } catch (err) {
+        console.error('Erro ao buscar lista de presentes:', err);
+    }
+
     setTimeout(() => {
         const container = document.getElementById('lista-presentes-container');
         if (!container) return;
 
-        // Escuta os cliques em botões de presentear de forma dinâmica
         container.addEventListener('click', async (e) => {
             if (e.target.matches('.btn-presentear')) {
                 const btn = e.target;
                 const presenteId = btn.getAttribute('data-id');
                 
+                const originalText = btn.innerText;
                 btn.disabled = true;
-                btn.innerText = 'Reservando...';
+                btn.innerText = 'Gerando PIX...';
 
                 try {
-                    await API.escolherPresente(presenteId);
+                    const dados = await API.escolherPresente(presenteId);
                     
-                    // Modifica o botão visualmente para indicar sucesso sem recarregar a página
+                    // Atualiza visualmente o card
                     btn.classList.replace('btn-casamento', 'btn-success');
-                    btn.innerText = '🎁 Reservado com Sucesso!';
-                    alert('Muito obrigado! O item foi reservado em seu nome.');
+                    btn.innerText = '🎁 Ver QR Code PIX';
+                    btn.disabled = false;
+                    
+                    // Abre a tela de pagamento por QR Code PIX
+                    abrirModalPix(dados);
+
                 } catch (err) {
-                    alert('Sessão expirada. Faça login para escolher um presente.');
-                    window.history.pushState({}, '', '/login');
-                    window.dispatchEvent(new Event('popstate'));
+                    alert(err.message || 'Sessão expirada. Faça login para escolher um presente.');
+                    btn.disabled = false;
+                    btn.innerText = originalText;
                 }
             }
         });
     }, 50);
 
-    // Gera o HTML dos cartões de presentes dinamicamente mapeando o array
-    const cardsHtml = listaPresentes.map(item => `
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm bg-white p-2" style="border-radius: 12px;">
-                <div class="card-body text-center d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title fw-bold text-secondary mb-2">${item.nome}</h5>
-                        <p class="card-text text-muted small mb-3">${item.desc}</p>
-                    </div>
-                    <div>
-                        <span class="d-block fw-bold text-dark fs-5 mb-3">${item.valor}</span>
-                        <button class="btn btn-casamento btn-sm w-100 btn-presentear" data-id="${item.id}">
-                            Presentear
-                        </button>
+    const cardsHtml = presentes.length ? presentes.map(item => {
+        let botaoHtml = '';
+        if (item.reservado_por_mim) {
+            botaoHtml = item.recebido
+                ? `
+                    <button class="btn btn-success btn-sm w-100" disabled>
+                        🎁 Recebido com muito carinho!
+                    </button>
+                `
+                : `
+                    <button class="btn btn-success btn-sm w-100 btn-presentear" data-id="${item.id}">
+                        🎁 Ver QR Code PIX
+                    </button>
+                `;
+        } else if (item.reservado) {
+            botaoHtml = `
+                <button class="btn btn-secondary btn-sm w-100" disabled>
+                    🔒 Reservado por ${item.comprador || 'um convidado'}
+                </button>
+            `;
+        } else {
+            botaoHtml = `
+                <button class="btn btn-casamento btn-sm w-100 btn-presentear" data-id="${item.id}">
+                    Presentear via PIX
+                </button>
+            `;
+        }
+
+        return `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm bg-white p-3 card-casamento">
+                    <div class="card-body text-center d-flex flex-column justify-content-between p-2">
+                        <div>
+                            <h5 class="card-title serif-font fw-bold text-dark mb-2">${item.nome}</h5>
+                            <p class="card-text text-muted small mb-3">${item.descricao || ''}</p>
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold text-dark fs-5 mb-3">${item.valor_formatado}</span>
+                            ${botaoHtml}
+                        </div>
                     </div>
                 </div>
             </div>
+        `;
+    }).join('') : `<div class="col-12 text-center text-muted"><p>Nenhum presente disponível no momento.</p></div>`;
+
+    const mensagensHtml = mensagens.length ? `
+        <div class="card-casamento p-4 mb-5">
+            <h3 class="serif-font mb-4 text-center">💌 Mensagens dos Noivos</h3>
+            ${mensagens.map(m => `
+                <div class="border rounded p-3 mb-2 bg-white shadow-sm">
+                    <div class="text-muted small mb-1">
+                        ${m.criado_em}${m.presente ? ` · sobre o presente: <strong>${m.presente}</strong>` : ''}
+                    </div>
+                    ${m.mensagem}
+                </div>
+            `).join('')}
         </div>
-    `).join('');
+    ` : '';
 
     return `
         <div class="card-casamento p-4">
-            <h3 class="mb-3 text-center" style="font-family: Georgia, serif;">Lista de Presentes Virtuais</h3>
-            <p class="text-muted text-center mb-5">Sua presença é o nosso maior presente, mas se desejar nos abençoar, escolha uma das opções abaixo:</p>
+            ${mensagensHtml}
+
+            <h3 class="serif-font mb-2 text-center">Lista de Presentes Virtuais</h3>
+            <p class="text-muted text-center mb-5 small">Sua presença é o nosso maior presente! Se desejar nos abençoar, escolha um item abaixo para contribuição via PIX.</p>
             
-            <div id="lista-presentes-container" class="row g-4">
+            <div id="lista-presentes-container" class="row g-3">
                 ${cardsHtml}
             </div>
         </div>

@@ -4,6 +4,8 @@ import PresencaView from './views/presenca.js';
 import PresentesView from './views/presentes.js';
 import LocalView from './views/local.js';
 import DashboardView from './views/dashboard.js';
+import PresentesNoivosView from './views/presentesNoivos.js';
+import ConvidadosView from './views/convidados.js';
 import { API } from './api.js';
 
 const routes = {
@@ -12,32 +14,71 @@ const routes = {
     '/confirmar-presenca': PresencaView,
     '/lista-de-presentes': PresentesView,
     '/local': LocalView,
-    '/dashboard': DashboardView
+    '/dashboard': DashboardView,
+    '/painel-presentes': PresentesNoivosView,
+    '/gerenciar-convidados': ConvidadosView
 };
 
 function isAuthenticated() {
     return localStorage.getItem('is_logged') === 'true';
 }
 
-// Atualiza dinamicamente o botão de Login/Logout na Navbar baseada no estado
+// Iniciais do nome para o avatar (ex.: "Lucas e Amanda" -> "LA")
+function getInitials(nome) {
+    if (!nome) return '?';
+    const partes = nome.trim().split(/\s+/).filter(Boolean);
+    if (partes.length >= 2) {
+        return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+    }
+    return (partes[0] || '?').slice(0, 2).toUpperCase();
+}
+
+// Atualiza dinamicamente a navbar baseada no estado de autenticação
 function atualizarMenu() {
     const loginBtnContainer = document.getElementById('nav-login-container');
+    const noivosContainer = document.getElementById('nav-noivos-container');
+    const autenticado = isAuthenticated();
+
+    // Submenu administrativo visível apenas para os noivos
+    if (noivosContainer) {
+        noivosContainer.innerHTML = (autenticado && localStorage.getItem('user_role') === 'noivos')
+            ? `
+            <div class="dropdown">
+                <a class="nav-link py-2 px-3 text-secondary fw-semibold text-nowrap dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">Área dos Noivos</a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/dashboard" data-link>Painel de Controle</a></li>
+                    <li><a class="dropdown-item" href="/painel-presentes" data-link>Gerenciar Presentes</a></li>
+                    <li><a class="dropdown-item" href="/gerenciar-convidados" data-link>Gerenciar Convidados</a></li>
+                </ul>
+            </div>`
+            : '';
+    }
+
     if (!loginBtnContainer) return;
 
-    if (isAuthenticated()) {
+    if (autenticado) {
+        const nome = localStorage.getItem('user_name') || 'Usuário';
         loginBtnContainer.innerHTML = `
-            <button id="btn-logout" class="btn btn-outline-danger btn-sm px-3 rounded-pill">Sair</button>
-        `;
+            <div class="dropdown">
+                <a class="nav-link py-2 px-2 d-flex align-items-center gap-2 text-nowrap" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false" title="${nome}">
+                    <span class="avatar-casamento">${getInitials(nome)}</span>
+                    <span class="text-secondary fw-semibold small">${nome}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text small text-muted">Logado como ${nome}</span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item text-danger" id="btn-logout">Sair</button></li>
+                </ul>
+            </div>`;
     } else {
         loginBtnContainer.innerHTML = `
-            <a class="btn btn-casamento px-4 text-dark ms-lg-2" href="/login" data-link>Entrar</a>
-        `;
+            <a class="btn btn-casamento px-4 text-dark ms-lg-2 text-nowrap" href="/login" data-link>Entrar</a>`;
     }
 }
 
-const router = () => {
+const router = async () => {
     const path = window.location.pathname;
-    const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/dashboard'];
+    const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/dashboard', '/painel-presentes', '/gerenciar-convidados'];
     
     if (rotasProtegidas.includes(path) && !isAuthenticated()) {
         window.history.pushState({}, '', '/login');
@@ -45,8 +86,17 @@ const router = () => {
         return;
     }
 
+    // Painel e gestão de presentes são exclusivos dos noivos
+    const rotasNoivos = ['/dashboard', '/painel-presentes', '/gerenciar-convidados'];
+    if (rotasNoivos.includes(path) && localStorage.getItem('user_role') !== 'noivos') {
+        window.history.pushState({}, '', '/');
+        router();
+        return;
+    }
+
     const view = routes[path] || (() => '<h2 class="text-center mt-5">Página não encontrada</h2>');
-    document.getElementById('app').innerHTML = view();
+    const htmlContent = await view();
+    document.getElementById('app').innerHTML = htmlContent;
     atualizarMenu(); // Ajusta os botões após a troca de tela
 };
 
@@ -66,6 +116,8 @@ document.addEventListener('click', async e => {
         } catch (err) {
             // Se houver falha de rede, limpa localmente de qualquer forma
             localStorage.removeItem('is_logged');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_name');
             window.history.pushState({}, '', '/login');
             router();
         }
