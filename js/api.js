@@ -164,6 +164,81 @@ export const API = {
         return data;
     },
 
+    // Lista todos os convidados cadastrados (somente noivos)
+    async getConvidados() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/painel-noivos/convidados', { ...options, method: 'GET' });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        return response.json();
+    },
+
+    // Atualiza os dados de um convidado (somente noivos)
+    async atualizarConvidado(convidadoId, name, username, password, role) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch(`/api/convidados/${convidadoId}`, {
+            ...options,
+            method: 'PUT',
+            body: JSON.stringify({
+                name,
+                username,
+                password: password || null,
+                role
+            })
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            const erros = data.errors ? Object.values(data.errors).flat().join('; ') : (data.mensagem || 'Erro ao atualizar convidado.');
+            throw new Error(erros);
+        }
+        return data;
+    },
+
+    // Remove um convidado (somente noivos)
+    async removerConvidado(convidadoId) {
+        const options = getFetchOptions();
+        const response = await fetch(`/api/convidados/${convidadoId}`, {
+            ...options,
+            method: 'DELETE'
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.mensagem || 'Erro ao remover convidado.');
+        }
+        return data;
+    },
+
+    // Retorna a configuração PIX atual (somente noivos)
+    async getPixConfig() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/pix-config', { ...options, method: 'GET' });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        return response.json();
+    },
+
+    // Salva a configuração PIX (somente noivos)
+    async salvarPixConfig(dados) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch('/api/pix-config', {
+            ...options,
+            method: 'PUT',
+            body: JSON.stringify(dados)
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            const erros = data.errors ? Object.values(data.errors).flat().join('; ') : (data.mensagem || 'Erro ao salvar configuração PIX.');
+            throw new Error(erros);
+        }
+        return data;
+    },
+
     // Resumo exclusivo dos noivos
     async getDashboardNoivos() {
         const options = getFetchOptions();
@@ -199,6 +274,28 @@ export const API = {
         const data = await response.json();
         if (!response.ok) {
             const erros = data.errors ? Object.values(data.errors).flat().join('; ') : (data.mensagem || 'Erro ao adicionar presente.');
+            throw new Error(erros);
+        }
+        return data;
+    },
+
+    // Atualiza os dados de um presente existente (somente noivos)
+    async atualizarPresente(presenteId, nome, descricao, valorEstimado) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch(`/api/presentes/${presenteId}`, {
+            ...options,
+            method: 'PUT',
+            body: JSON.stringify({
+                nome,
+                descricao: descricao || null,
+                valor_estimado: valorEstimado ?? null
+            })
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            const erros = data.errors ? Object.values(data.errors).flat().join('; ') : (data.mensagem || 'Erro ao atualizar presente.');
             throw new Error(erros);
         }
         return data;

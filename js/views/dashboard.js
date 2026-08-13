@@ -246,34 +246,6 @@ export default function DashboardView() {
                 <h5 class="mb-3">Convidados Confirmados</h5>
                 <ul id="lista-confirmados" class="list-group"></ul>
             </div>
-
-            <div class="mb-4 p-3 border rounded bg-white">
-                <h5 class="mb-3">Cadastrar Convidado</h5>
-                <p class="text-muted small mb-3">Crie o acesso de um novo convidado para confirmar presença e reservar presentes.</p>
-                <form id="form-cadastrar-convidado" class="row g-2 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label small mb-1" for="novo-convidado-nome">Nome Completo *</label>
-                        <input type="text" id="novo-convidado-nome" class="form-control" required maxlength="255" placeholder="Ex: Maria da Silva">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small mb-1" for="novo-convidado-usuario">Usuário de Acesso *</label>
-                        <input type="text" id="novo-convidado-usuario" class="form-control" required maxlength="255" placeholder="Ex: maria_silva">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small mb-1" for="novo-convidado-senha">Senha * (mín. 6)</label>
-                        <input type="password" id="novo-convidado-senha" class="form-control" required minlength="6" autocomplete="new-password">
-                    </div>
-                    <div class="col-md-2 d-grid">
-                        <button type="submit" id="btn-cadastrar-convidado" class="btn btn-casamento">Cadastrar</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="text-center border rounded p-4 bg-light">
-                <h5 class="mb-2">Gerenciamento de Presentes</h5>
-                <p class="text-muted small mb-3">Adicione novos presentes e acompanhe os reservados, recebimentos e mensagens dos convidados.</p>
-                <a class="btn btn-success" href="/painel-presentes" data-link>Ir para Gerenciar Presentes</a>
-            </div>
         </div>
     `;
 }

@@ -5,6 +5,7 @@ import PresentesView from './views/presentes.js';
 import LocalView from './views/local.js';
 import DashboardView from './views/dashboard.js';
 import PresentesNoivosView from './views/presentesNoivos.js';
+import ConvidadosView from './views/convidados.js';
 import { API } from './api.js';
 
 const routes = {
@@ -14,7 +15,8 @@ const routes = {
     '/lista-de-presentes': PresentesView,
     '/local': LocalView,
     '/dashboard': DashboardView,
-    '/painel-presentes': PresentesNoivosView
+    '/painel-presentes': PresentesNoivosView,
+    '/gerenciar-convidados': ConvidadosView
 };
 
 function isAuthenticated() {
@@ -46,6 +48,7 @@ function atualizarMenu() {
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/dashboard" data-link>Painel de Controle</a></li>
                     <li><a class="dropdown-item" href="/painel-presentes" data-link>Gerenciar Presentes</a></li>
+                    <li><a class="dropdown-item" href="/gerenciar-convidados" data-link>Gerenciar Convidados</a></li>
                 </ul>
             </div>`
             : '';
@@ -75,7 +78,7 @@ function atualizarMenu() {
 
 const router = async () => {
     const path = window.location.pathname;
-    const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/dashboard', '/painel-presentes'];
+    const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/dashboard', '/painel-presentes', '/gerenciar-convidados'];
     
     if (rotasProtegidas.includes(path) && !isAuthenticated()) {
         window.history.pushState({}, '', '/login');
@@ -84,7 +87,7 @@ const router = async () => {
     }
 
     // Painel e gestão de presentes são exclusivos dos noivos
-    const rotasNoivos = ['/dashboard', '/painel-presentes'];
+    const rotasNoivos = ['/dashboard', '/painel-presentes', '/gerenciar-convidados'];
     if (rotasNoivos.includes(path) && localStorage.getItem('user_role') !== 'noivos') {
         window.history.pushState({}, '', '/');
         router();

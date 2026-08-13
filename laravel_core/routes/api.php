@@ -5,6 +5,66 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Artisan;
 
+// --- HELPERS PIX (EMV QR Code) ---
+// Calcula o CRC16-CCITT (polinômio 0x1021) do payload PIX
+function calcularCrc16($payload)
+{
+    $crc = 0xFFFF;
+    $length = strlen($payload);
+    for ($i = 0; $i < $length; $i++) {
+        $crc ^= (ord($payload[$i]) << 8);
+        for ($j = 0; $j < 8; $j++) {
+            if ($crc & 0x8000) {
+                $crc = (($crc << 1) ^ 0x1021) & 0xFFFF;
+            } else {
+                $crc = ($crc << 1) & 0xFFFF;
+            }
+        }
+    }
+    return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
+}
+
+// Monta o payload EMV válido do PIX a partir da configuração e do valor
+function gerarPayloadPix($config, $valor)
+{
+    // Campo 26 — Merchant Account Information (br.gov.bcb.pix + chave)
+    $maInfo = '0014BR.GOV.BCB.PIX' . '01' . str_pad(strlen($config->chave_pix), 2, '0', STR_PAD_LEFT) . $config->chave_pix;
+    $payload = '000201';
+    $payload .= '26' . str_pad(strlen($maInfo), 2, '0', STR_PAD_LEFT) . $maInfo;
+
+    // Campo 52 — Categoria do comerciante (MCC)
+    $payload .= '5204' . str_pad((string)$config->mcc, 4, '0', STR_PAD_RIGHT);
+
+    // Campo 53 — Moeda (986 = BRL)
+    $payload .= '5303986';
+
+    // Campo 54 — Valor
+    $valorStr = number_format((float)$valor, 2, '.', '');
+    $payload .= '54' . str_pad(strlen($valorStr), 2, '0', STR_PAD_LEFT) . $valorStr;
+
+    // Campo 58 — País (BR)
+    $payload .= '5802BR';
+
+    // Campo 59 — Nome do recebedor (máx. 25)
+    $nome = mb_substr($config->nome_recebedor, 0, 25);
+    $payload .= '59' . str_pad(strlen($nome), 2, '0', STR_PAD_LEFT) . $nome;
+
+    // Campo 60 — Cidade (máx. 15)
+    $cidade = mb_substr($config->cidade, 0, 15);
+    $payload .= '60' . str_pad(strlen($cidade), 2, '0', STR_PAD_LEFT) . $cidade;
+
+    // Campo 62 — Dados adicionais (subcampo 05 = txid)
+    $txid = $config->txid ?: '***';
+    $txidField = '05' . str_pad(strlen($txid), 2, '0', STR_PAD_LEFT) . $txid;
+    $payload .= '62' . str_pad(strlen($txidField), 2, '0', STR_PAD_LEFT) . $txidField;
+
+    // Campo 63 — CRC16
+    $payload .= '6304' . calcularCrc16($payload . '6304');
+
+    return $payload;
+}
+
+
 
 
 
@@ -121,9 +181,16 @@ Route::middleware('auth:sanctum')->group(function () {
         $presente->user_id = $request->user()->id;
         $presente->save();
 
+        $pixConfig = App\Models\PixConfig::first();
+        if (!$pixConfig) {
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'O PIX ainda não foi configurado pelos noivos. Tente novamente mais tarde.'
+            ], 422);
+        }
+
         $valorFormatado = 'R$ ' . number_format($presente->valor_estimado, 2, ',', '.');
-        $chavePix = "noivos.lucasamanda@casamento.com.br";
-        $pixPayload = "00020126580014BR.GOV.BCB.PIX0136" . $chavePix . "5204000053039865405" . sprintf("%.2f", $presente->valor_estimado) . "5802BR5920Lucas e Amanda6009SAO PAULO62070503***6304";
+        $pixPayload = gerarPayloadPix($pixConfig, $presente->valor_estimado);
         $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" . urlencode($pixPayload);
 
         return response()->json([
@@ -135,7 +202,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'valor' => $valorFormatado,
             ],
             'pix' => [
-                'chave' => $chavePix,
+                'chave' => $pixConfig->chave_pix,
                 'payload' => $pixPayload,
                 'qr_code_url' => $qrCodeUrl
             ]
@@ -170,6 +237,121 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
     // Rota administrativa: apenas os noivos podem cadastrar novos convidados ou novos usuários
     Route::post('/usuarios/cadastrar', [AuthController::class, 'register']);
 
+    // Retorna a configuração PIX atual (ou vazia) para os noivos
+    Route::get('/pix-config', function () {
+        $config = App\Models\PixConfig::first();
+
+        return response()->json($config ? $config->only([
+            'chave_pix',
+            'nome_recebedor',
+            'cidade',
+            'mcc',
+            'txid',
+        ]) : [
+            'chave_pix' => '',
+            'nome_recebedor' => '',
+            'cidade' => '',
+            'mcc' => '0000',
+            'txid' => '***',
+        ]);
+    });
+
+    // Salva a configuração PIX informada pelos noivos (linha única)
+    Route::put('/pix-config', function (Request $request) {
+        $validated = $request->validate([
+            'chave_pix' => ['required', 'string', 'max:255'],
+            'nome_recebedor' => ['required', 'string', 'max:25'],
+            'cidade' => ['required', 'string', 'max:15'],
+            'mcc' => ['nullable', 'string', 'max:4'],
+            'txid' => ['nullable', 'string', 'max:25'],
+        ]);
+
+        $config = App\Models\PixConfig::first();
+        if (!$config) {
+            $config = new App\Models\PixConfig();
+        }
+
+        $config->chave_pix = trim($validated['chave_pix']);
+        $config->nome_recebedor = trim($validated['nome_recebedor']);
+        $config->cidade = trim($validated['cidade']);
+        $config->mcc = $validated['mcc'] ?? '0000';
+        $config->txid = $validated['txid'] ?? '***';
+        $config->save();
+
+        return response()->json([
+            'status' => 'sucesso',
+            'mensagem' => 'Configuração PIX salva com sucesso!',
+        ]);
+    });
+
+    // Lista todos os convidados cadastrados com status de presença e presentes reservados
+    Route::get('/painel-noivos/convidados', function () {
+        $convidados = App\Models\User::where('role', 'convidado')
+            ->with('presenca')
+            ->withCount('presentes')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($convidados->map(fn ($u) => [
+            'id' => $u->id,
+            'name' => $u->name,
+            'username' => $u->username,
+            'email' => $u->email,
+            'presenca' => $u->presenca ? [
+                'confirmado' => (bool)$u->presenca->confirmado,
+                'acompanhantes' => (int)$u->presenca->acompanhantes,
+                'observacoes' => $u->presenca->observacoes,
+            ] : null,
+            'total_presentes' => (int)$u->presentes_count,
+        ]));
+    });
+
+    // Atualiza os dados de um convidado (nome, usuário, senha e função)
+    Route::put('/convidados/{convidado}', function (Request $request, App\Models\User $convidado) {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('users', 'username')->ignore($convidado->id)],
+            'password' => ['nullable', 'string', 'min:6'],
+            'role' => ['string', 'in:convidado,noivos'],
+        ]);
+
+        $convidado->name = trim($data['name']);
+        $convidado->username = trim($data['username']);
+        if (!empty($data['password'])) {
+            $convidado->password = Illuminate\Support\Facades\Hash::make($data['password']);
+        }
+        $convidado->role = $data['role'] ?? $convidado->role;
+        $convidado->save();
+
+        return response()->json([
+            'status' => 'sucesso',
+            'mensagem' => 'Convidado atualizado com sucesso!',
+            'convidado' => [
+                'id' => $convidado->id,
+                'name' => $convidado->name,
+                'username' => $convidado->username,
+                'role' => $convidado->role,
+            ],
+        ]);
+    });
+
+    // Remove um convidado (presenças vinculadas são excluídas e presentes liberados)
+    Route::delete('/convidados/{convidado}', function (App\Models\User $convidado) {
+        if ($convidado->role !== 'convidado') {
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Não é possível remover usuários administrativos.'
+            ], 422);
+        }
+
+        $convidado->delete();
+
+        return response()->json([
+            'status' => 'sucesso',
+            'mensagem' => 'Convidado removido com sucesso!',
+        ]);
+    });
+
     // Endpoint para os noivos visualizarem os relatórios em tempo real no Dashboard
     Route::get('/painel-noivos/resumo', function () {
         $confirmados = App\Models\Presenca::where('confirmado', true)->with('user:id,name')->get();
@@ -194,17 +376,20 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
         ]);
     });
 
-    // Lista os presentes reservados pelos convidados para gestão dos noivos
+    // Lista todos os presentes cadastrados para gestão dos noivos
     Route::get('/painel-noivos/presentes', function () {
-        $presentes = App\Models\Presente::whereNotNull('user_id')
-            ->with(['comprador:id,name', 'mensagens'])
+        $presentes = App\Models\Presente::with(['comprador:id,name', 'mensagens'])
+            ->orderByRaw('CASE WHEN user_id IS NULL THEN 0 ELSE 1 END')
             ->orderByDesc('updated_at')
             ->get();
 
         return response()->json($presentes->map(fn ($p) => [
             'id' => $p->id,
             'nome' => $p->nome,
+            'descricao' => $p->descricao,
+            'valor_estimado' => (float)$p->valor_estimado,
             'valor_formatado' => 'R$ ' . number_format($p->valor_estimado, 2, ',', '.'),
+            'reservado' => !is_null($p->user_id),
             'recebido' => (bool)$p->recebido,
             'comprador' => $p->comprador ? [
                 'id' => $p->comprador->id,
@@ -259,6 +444,27 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
                 'valor_formatado' => $presente->valor_estimado ? 'R$ ' . number_format($presente->valor_estimado, 2, ',', '.') : null,
             ],
         ], 201);
+    });
+
+    // Atualiza os dados de um presente existente pelos noivos
+    Route::put('/presentes/{presente}', function (Request $request, App\Models\Presente $presente) {
+        $validated = $request->validate([
+            'nome' => ['required', 'string', 'max:255'],
+            'descricao' => ['nullable', 'string', 'max:500'],
+            'valor_estimado' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $presente->update([
+            'nome' => trim($validated['nome']),
+            'descricao' => $validated['descricao'] ?? null,
+            'valor_estimado' => $validated['valor_estimado'] ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'sucesso',
+            'mensagem' => 'Presente atualizado com sucesso!',
+            'presente' => $presente->only(['id', 'nome', 'descricao', 'valor_estimado']),
+        ]);
     });
 
     // Envia uma mensagem dos noivos ao convidado que reservou o presente

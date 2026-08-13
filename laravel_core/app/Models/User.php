@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -53,5 +55,15 @@ class User extends Authenticatable
     public function isNoivo(): bool
     {
         return $this->role === 'noivos';
+    }
+
+    public function presenca(): HasOne
+    {
+        return $this->hasOne(Presenca::class);
+    }
+
+    public function presentes(): HasMany
+    {
+        return $this->hasMany(Presente::class, 'user_id');
     }
 }
