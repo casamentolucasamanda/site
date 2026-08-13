@@ -212,15 +212,6 @@ export const API = {
         return data;
     },
 
-    // Retorna a configuração PIX atual (somente noivos)
-    async getPixConfig() {
-        const options = getFetchOptions();
-        const response = await fetch('/api/pix-config', { ...options, method: 'GET' });
-        if (verificar401(response)) throw new Error('Não autenticado');
-        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
-        return response.json();
-    },
-
     // Salva a configuração PIX (somente noivos)
     async salvarPixConfig(dados) {
         const options = getFetchOptions({ 'Content-Type': 'application/json' });
@@ -239,7 +230,7 @@ export const API = {
         return data;
     },
 
-    // Resumo exclusivo dos noivos
+    // Resumo exclusivo dos noivos (inclui perfil do usuário logado)
     async getDashboardNoivos() {
         const options = getFetchOptions();
         const response = await fetch('/api/painel-noivos/resumo', { ...options, method: 'GET' });
@@ -248,7 +239,7 @@ export const API = {
         return response.json();
     },
 
-    // Lista de presentes reservados para gestão dos noivos
+    // Lista de presentes para gestão dos noivos (inclui configuração PIX)
     async getPainelNoivosPresentes() {
         const options = getFetchOptions();
         const response = await fetch('/api/painel-noivos/presentes', { ...options, method: 'GET' });
@@ -332,14 +323,6 @@ export const API = {
         return data;
     },
 
-    // Mensagens recebidas dos noivos (visível para o convidado logado)
-    async getMensagens() {
-        const options = getFetchOptions();
-        const response = await fetch('/api/mensagens', { ...options, method: 'GET' });
-        if (verificar401(response)) throw new Error('Não autenticado');
-        return response.json();
-    },
-
     // Executa as migrations do banco de dados (somente noivos)
     async migrarBanco() {
         const options = getFetchOptions();
@@ -360,23 +343,6 @@ export const API = {
         if (!response.ok) {
             throw new Error('Erro ao carregar as informações do local');
         }
-        return response.json();
-    },
-
-    // Checagem de usuário logado
-    async testarLogin() {
-        const options = getFetchOptions();
-        const response = await fetch('/api/user', {
-            ...options,
-            method: 'GET'
-        });
-
-        if (verificar401(response)) throw new Error('Não autenticado (401 Unauthorized)');
-
-        if (!response.ok) {
-            throw new Error(`Erro na requisição: ${response.status}`);
-        }
-
         return response.json();
     }
 };

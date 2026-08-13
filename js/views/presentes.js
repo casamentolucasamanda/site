@@ -70,10 +70,9 @@ export default async function PresentesView() {
     let presentes = [];
     let mensagens = [];
     try {
-        [presentes, mensagens] = await Promise.all([
-            API.getPresentes(),
-            API.getMensagens().catch(() => [])
-        ]);
+        const dados = await API.getPresentes();
+        presentes = dados.presentes || [];
+        mensagens = dados.mensagens || [];
     } catch (err) {
         console.error('Erro ao buscar lista de presentes:', err);
     }

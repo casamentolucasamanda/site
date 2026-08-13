@@ -77,7 +77,6 @@ export default function PresentesNoivosView() {
 
     setTimeout(() => {
         carregarPresentes();
-        carregarPixConfig();
 
         // Formulário de configuração do PIX
         const formPixConfig = document.getElementById('form-pix-config');
@@ -98,7 +97,7 @@ export default function PresentesNoivosView() {
                 try {
                     await API.salvarPixConfig(dados);
                     alert('Configuração PIX salva com sucesso!');
-                    carregarPixConfig();
+                    carregarPresentes();
                 } catch (err) {
                     alert(err.message || 'Erro ao salvar configuração PIX.');
                 } finally {
@@ -187,21 +186,16 @@ export default function PresentesNoivosView() {
         }
     }, 100);
 
-    async function carregarPixConfig() {
-        try {
-            const config = await API.getPixConfig();
-            const set = (id, valor) => {
-                const el = document.getElementById(id);
-                if (el) el.value = valor || '';
-            };
-            set('pix-config-chave', config.chave_pix);
-            set('pix-config-nome', config.nome_recebedor);
-            set('pix-config-cidade', config.cidade);
-            set('pix-config-mcc', config.mcc);
-            set('pix-config-txid', config.txid);
-        } catch (err) {
-            // Mantém o formulário vazio; o erro será exibido ao tentar salvar
-        }
+    function preencherPixConfig(config) {
+        const set = (id, valor) => {
+            const el = document.getElementById(id);
+            if (el) el.value = valor || '';
+        };
+        set('pix-config-chave', config.chave_pix);
+        set('pix-config-nome', config.nome_recebedor);
+        set('pix-config-cidade', config.cidade);
+        set('pix-config-mcc', config.mcc);
+        set('pix-config-txid', config.txid);
     }
 
     async function carregarPresentes() {
@@ -209,8 +203,11 @@ export default function PresentesNoivosView() {
         if (!container) return;
 
         try {
-            const presentes = await API.getPainelNoivosPresentes();
+            const dados = await API.getPainelNoivosPresentes();
+            const presentes = dados.presentes || [];
             presentesCache = presentes;
+
+            preencherPixConfig(dados.pix_config || {});
 
             if (presentes.length === 0) {
                 container.innerHTML = '<div class="text-muted">Nenhum presente cadastrado ainda.</div>';

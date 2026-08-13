@@ -86,11 +86,6 @@ Route::get('/debug-auth', function (Request $request) {
 // Qualquer usuário logado (noivos ou convidados) consegue acessar este grupo
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Retorna os dados do usuário atual (Útil para a SPA checar se ainda está logado)
-    Route::get('/user', function (Request $request) {
-        return response()->json($request->user());
-    });
-    
     // Endpoints para ações dos convidados
     Route::get('/presenca', function (Request $request) {
         $presenca = App\Models\Presenca::where('user_id', $request->user()->id)->first();
@@ -127,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    Route::get('/presentes', function () {
+    Route::get('/presentes', function (Request $request) {
         $presentes = App\Models\Presente::with('comprador:id,name')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
@@ -141,11 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
                 'comprador' => $p->comprador ? $p->comprador->name : null,
             ];
         });
-        return response()->json($presentes);
-    });
 
-    // Mensagens enviadas pelos noivos ao convidado logado
-    Route::get('/mensagens', function (Request $request) {
+        // Mensagens enviadas pelos noivos ao convidado logado
         $mensagens = App\Models\Mensagem::where('destinatario_id', $request->user()->id)
             ->with('presente:id,nome')
             ->orderByDesc('created_at')
@@ -156,12 +148,15 @@ Route::middleware('auth:sanctum')->group(function () {
             ->where('lida', false)
             ->update(['lida' => true]);
 
-        return response()->json($mensagens->map(fn ($m) => [
-            'id' => $m->id,
-            'presente' => $m->presente ? $m->presente->nome : null,
-            'mensagem' => $m->mensagem,
-            'criado_em' => $m->created_at ? $m->created_at->format('d/m/Y \à\s H:i') : null,
-        ]));
+        return response()->json([
+            'presentes' => $presentes,
+            'mensagens' => $mensagens->map(fn ($m) => [
+                'id' => $m->id,
+                'presente' => $m->presente ? $m->presente->nome : null,
+                'mensagem' => $m->mensagem,
+                'criado_em' => $m->created_at ? $m->created_at->format('d/m/Y \à\s H:i') : null,
+            ]),
+        ]);
     });
 
     Route::post('/escolher-presente', function (Request $request) {
@@ -236,25 +231,6 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
     
     // Rota administrativa: apenas os noivos podem cadastrar novos convidados ou novos usuários
     Route::post('/usuarios/cadastrar', [AuthController::class, 'register']);
-
-    // Retorna a configuração PIX atual (ou vazia) para os noivos
-    Route::get('/pix-config', function () {
-        $config = App\Models\PixConfig::first();
-
-        return response()->json($config ? $config->only([
-            'chave_pix',
-            'nome_recebedor',
-            'cidade',
-            'mcc',
-            'txid',
-        ]) : [
-            'chave_pix' => '',
-            'nome_recebedor' => '',
-            'cidade' => '',
-            'mcc' => '0000',
-            'txid' => '***',
-        ]);
-    });
 
     // Salva a configuração PIX informada pelos noivos (linha única)
     Route::put('/pix-config', function (Request $request) {
@@ -353,7 +329,7 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
     });
 
     // Endpoint para os noivos visualizarem os relatórios em tempo real no Dashboard
-    Route::get('/painel-noivos/resumo', function () {
+    Route::get('/painel-noivos/resumo', function (Request $request) {
         $confirmados = App\Models\Presenca::where('confirmado', true)->with('user:id,name')->get();
         $naoConfirmados = App\Models\Presenca::where('confirmado', false)->count();
         $totalConvidados = App\Models\User::where('role', 'convidado')->count();
@@ -362,6 +338,13 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
         $totalPresentes = App\Models\Presente::count();
 
         return response()->json([
+            'usuario' => [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'username' => $request->user()->username,
+                'email' => $request->user()->email,
+                'role' => $request->user()->role,
+            ],
             'total_convidados' => $totalConvidados,
             'total_convidados_confirmados' => $confirmados->count(),
             'total_convidados_nao_confirmaram' => $naoConfirmados,
@@ -383,24 +366,41 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
             ->orderByDesc('updated_at')
             ->get();
 
-        return response()->json($presentes->map(fn ($p) => [
-            'id' => $p->id,
-            'nome' => $p->nome,
-            'descricao' => $p->descricao,
-            'valor_estimado' => (float)$p->valor_estimado,
-            'valor_formatado' => 'R$ ' . number_format($p->valor_estimado, 2, ',', '.'),
-            'reservado' => !is_null($p->user_id),
-            'recebido' => (bool)$p->recebido,
-            'comprador' => $p->comprador ? [
-                'id' => $p->comprador->id,
-                'name' => $p->comprador->name,
-            ] : null,
-            'mensagens' => $p->mensagens->sortByDesc('created_at')->values()->map(fn ($m) => [
-                'id' => $m->id,
-                'mensagem' => $m->mensagem,
-                'criado_em' => $m->created_at ? $m->created_at->format('d/m/Y \à\s H:i') : null,
+        $pixConfig = App\Models\PixConfig::first();
+
+        return response()->json([
+            'presentes' => $presentes->map(fn ($p) => [
+                'id' => $p->id,
+                'nome' => $p->nome,
+                'descricao' => $p->descricao,
+                'valor_estimado' => (float)$p->valor_estimado,
+                'valor_formatado' => 'R$ ' . number_format($p->valor_estimado, 2, ',', '.'),
+                'reservado' => !is_null($p->user_id),
+                'recebido' => (bool)$p->recebido,
+                'comprador' => $p->comprador ? [
+                    'id' => $p->comprador->id,
+                    'name' => $p->comprador->name,
+                ] : null,
+                'mensagens' => $p->mensagens->sortByDesc('created_at')->values()->map(fn ($m) => [
+                    'id' => $m->id,
+                    'mensagem' => $m->mensagem,
+                    'criado_em' => $m->created_at ? $m->created_at->format('d/m/Y \à\s H:i') : null,
+                ]),
             ]),
-        ]));
+            'pix_config' => $pixConfig ? $pixConfig->only([
+                'chave_pix',
+                'nome_recebedor',
+                'cidade',
+                'mcc',
+                'txid',
+            ]) : [
+                'chave_pix' => '',
+                'nome_recebedor' => '',
+                'cidade' => '',
+                'mcc' => '0000',
+                'txid' => '***',
+            ],
+        ]);
     });
 
     // Confirma o recebimento físico de um presente pelos noivos
