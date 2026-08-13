@@ -1,7 +1,5 @@
 import { API } from '../api.js';
 
-const TEMPO_REFRESH_MS = 15000;
-
 function formatarMoeda(valor) {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -31,14 +29,12 @@ function getInitials(nome) {
 }
 
 export default function DashboardView() {
-    let intervalo = null;
     let redirecionando = false;
 
-    // Busca e renderiza os dados em tempo real após a casca ser injetada
+    // Busca e renderiza os dados apenas no carregamento da página
     setTimeout(() => {
         carregarDados();
         carregarPerfil();
-        intervalo = setInterval(carregarDados, TEMPO_REFRESH_MS);
 
         const btnRefresh = document.getElementById('btn-refresh');
         if (btnRefresh) {
@@ -139,10 +135,9 @@ export default function DashboardView() {
             }
             if (btnRefresh) btnRefresh.disabled = false;
 
-            // Se o Laravel responder 401, para o refresh e joga o usuário para o login
+            // Se o Laravel responder 401, limpa a sessão e joga o usuário para o login
             if (!redirecionando && (err.message.includes('401') || err.message.includes('Não autenticado'))) {
                 redirecionando = true;
-                if (intervalo) clearInterval(intervalo);
                 window.history.pushState({}, '', '/login');
                 window.dispatchEvent(new Event('popstate'));
             }
