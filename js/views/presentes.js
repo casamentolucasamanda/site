@@ -68,8 +68,12 @@ function abrirModalPix(dados) {
 
 export default async function PresentesView() {
     let presentes = [];
+    let mensagens = [];
     try {
-        presentes = await API.getPresentes();
+        [presentes, mensagens] = await Promise.all([
+            API.getPresentes(),
+            API.getMensagens().catch(() => [])
+        ]);
     } catch (err) {
         console.error('Erro ao buscar lista de presentes:', err);
     }
@@ -110,11 +114,17 @@ export default async function PresentesView() {
     const cardsHtml = presentes.length ? presentes.map(item => {
         let botaoHtml = '';
         if (item.reservado_por_mim) {
-            botaoHtml = `
-                <button class="btn btn-success btn-sm w-100 btn-presentear" data-id="${item.id}">
-                    🎁 Ver QR Code PIX
-                </button>
-            `;
+            botaoHtml = item.recebido
+                ? `
+                    <button class="btn btn-success btn-sm w-100" disabled>
+                        🎁 Recebido com muito carinho!
+                    </button>
+                `
+                : `
+                    <button class="btn btn-success btn-sm w-100 btn-presentear" data-id="${item.id}">
+                        🎁 Ver QR Code PIX
+                    </button>
+                `;
         } else if (item.reservado) {
             botaoHtml = `
                 <button class="btn btn-secondary btn-sm w-100" disabled>
@@ -147,8 +157,24 @@ export default async function PresentesView() {
         `;
     }).join('') : `<div class="col-12 text-center text-muted"><p>Nenhum presente disponível no momento.</p></div>`;
 
+    const mensagensHtml = mensagens.length ? `
+        <div class="card-casamento p-4 mb-5">
+            <h3 class="serif-font mb-4 text-center">💌 Mensagens dos Noivos</h3>
+            ${mensagens.map(m => `
+                <div class="border rounded p-3 mb-2 bg-white shadow-sm">
+                    <div class="text-muted small mb-1">
+                        ${m.criado_em}${m.presente ? ` · sobre o presente: <strong>${m.presente}</strong>` : ''}
+                    </div>
+                    ${m.mensagem}
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+
     return `
         <div class="card-casamento p-4">
+            ${mensagensHtml}
+
             <h3 class="serif-font mb-2 text-center">Lista de Presentes Virtuais</h3>
             <p class="text-muted text-center mb-5 small">Sua presença é o nosso maior presente! Se desejar nos abençoar, escolha um item abaixo para contribuição via PIX.</p>
             

@@ -24,6 +24,33 @@ function getFetchOptions(extraHeaders = {}) {
     };
 }
 
+// Evita múltiplos redirecionamentos em rajadas de 401 (ex.: refresh do dashboard)
+let redirecionandoLogin = false;
+
+// Remove a sessão do navegador e volta para o login quando o servidor responder 401
+function encerrarSessaoPor401() {
+    localStorage.removeItem('is_logged');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_name');
+
+    if (redirecionandoLogin) return;
+    redirecionandoLogin = true;
+
+    if (window.location.pathname !== '/login') {
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new Event('popstate'));
+    }
+}
+
+// Checa se a resposta foi 401 e, se sim, limpa a sessão local do navegador
+function verificar401(response) {
+    if (response.status === 401) {
+        encerrarSessaoPor401();
+        return true;
+    }
+    return false;
+}
+
 export const API = {
     // Inicializa o cookie CSRF do Laravel caso ainda não exista no navegador
     async initCsrf() {
@@ -58,12 +85,17 @@ export const API = {
             method: 'POST',
             body: JSON.stringify({ username, password })
         });
-        
+
+        if (verificar401(response)) throw new Error('Não autenticado');
+
         if (!response.ok) {
             const erro = await response.json();
             throw new Error(erro.message || 'Falha na autenticação');
         }
-        
+
+        // Sessão renovada com sucesso: permite novos redirecionamentos por 401
+        redirecionandoLogin = false;
+
         return response.json();
     },
     
@@ -72,6 +104,8 @@ export const API = {
         const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/logout', { ...options, method: 'POST' });
         localStorage.removeItem('is_logged');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_name');
         return response.json();
     },
     
@@ -79,7 +113,7 @@ export const API = {
     async getPresenca() {
         const options = getFetchOptions();
         const response = await fetch('/api/presenca', { ...options, method: 'GET' });
-        if (response.status === 401) throw new Error('Não autenticado');
+        if (verificar401(response)) throw new Error('Não autenticado');
         return response.json();
     },
 
@@ -91,7 +125,7 @@ export const API = {
             method: 'POST',
             body: JSON.stringify({ confirmado, observacoes })
         });
-        if (response.status === 401) throw new Error('Não autenticado');
+        if (verificar401(response)) throw new Error('Não autenticado');
         return response.json();
     },
 
@@ -99,7 +133,7 @@ export const API = {
     async getPresentes() {
         const options = getFetchOptions();
         const response = await fetch('/api/presentes', { ...options, method: 'GET' });
-        if (response.status === 401) throw new Error('Não autenticado');
+        if (verificar401(response)) throw new Error('Não autenticado');
         return response.json();
     },
 
@@ -111,7 +145,7 @@ export const API = {
             method: 'POST',
             body: JSON.stringify({ presente_id: presenteId })
         });
-        if (response.status === 401) throw new Error('Não autenticado');
+        if (verificar401(response)) throw new Error('Não autenticado');
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.mensagem || 'Erro ao reservar presente.');
@@ -123,17 +157,92 @@ export const API = {
     async getDashboardNoivos() {
         const options = getFetchOptions();
         const response = await fetch('/api/painel-noivos/resumo', { ...options, method: 'GET' });
-        if (response.status === 401) throw new Error('Não autenticado');
+        if (verificar401(response)) throw new Error('Não autenticado');
         if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
         return response.json();
     },
 
-    // Dados de votos/presença
-    async getDashboardData() {
+    // Lista de presentes reservados para gestão dos noivos
+    async getPainelNoivosPresentes() {
         const options = getFetchOptions();
-        const response = await fetch('/api/votos', { ...options, method: 'GET' });
-        if (response.status === 401) throw new Error('Não autenticado');
+        const response = await fetch('/api/painel-noivos/presentes', { ...options, method: 'GET' });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
         return response.json();
+    },
+
+    // Cadastra um novo presente na lista de presentes (somente noivos)
+    async cadastrarPresente(nome, descricao, valorEstimado) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch('/api/presentes', {
+            ...options,
+            method: 'POST',
+            body: JSON.stringify({
+                nome,
+                descricao: descricao || null,
+                valor_estimado: valorEstimado ?? null
+            })
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            const erros = data.errors ? Object.values(data.errors).flat().join('; ') : (data.mensagem || 'Erro ao adicionar presente.');
+            throw new Error(erros);
+        }
+        return data;
+    },
+
+    // Confirma o recebimento físico de um presente
+    async confirmarRecebimentoPresente(presenteId) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch(`/api/presentes/${presenteId}/receber`, {
+            ...options,
+            method: 'POST'
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.mensagem || 'Erro ao confirmar recebimento.');
+        }
+        return data;
+    },
+
+    // Envia mensagem dos noivos ao convidado que reservou o presente
+    async enviarMensagemPresente(presenteId, mensagem) {
+        const options = getFetchOptions({ 'Content-Type': 'application/json' });
+        const response = await fetch(`/api/presentes/${presenteId}/mensagem`, {
+            ...options,
+            method: 'POST',
+            body: JSON.stringify({ mensagem })
+        });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.mensagem || 'Erro ao enviar mensagem.');
+        }
+        return data;
+    },
+
+    // Mensagens recebidas dos noivos (visível para o convidado logado)
+    async getMensagens() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/mensagens', { ...options, method: 'GET' });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        return response.json();
+    },
+
+    // Executa as migrations do banco de dados (somente noivos)
+    async migrarBanco() {
+        const options = getFetchOptions();
+        const response = await fetch('/api/admin/migrate', { ...options, method: 'GET' });
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.mensagem || 'Erro ao executar migrate.');
+        }
+        return data;
     },
 
     // Informações do local da recepção
@@ -154,9 +263,7 @@ export const API = {
             method: 'GET'
         });
 
-        if (response.status === 401) {
-            throw new Error('Não autenticado (401 Unauthorized)');
-        }
+        if (verificar401(response)) throw new Error('Não autenticado (401 Unauthorized)');
 
         if (!response.ok) {
             throw new Error(`Erro na requisição: ${response.status}`);

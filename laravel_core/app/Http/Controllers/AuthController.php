@@ -30,6 +30,8 @@ class AuthController extends Controller
                 'status' => 'sucesso',
                 'usuario' => [
                     'name' => $user->name,
+                    'username' => $user->username,
+                    'email' => $user->email,
                     'role' => $user->role,
                 ]
             ]);

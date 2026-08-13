@@ -48,6 +48,23 @@ h1, h2, h3, h4, h5, .serif-font {
     transform: translateY(-1px);
 }
 
+/* Avatar com iniciais do usuário logado */
+.avatar-casamento {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rosa-pastel), #fcdbd5);
+    color: var(--texto-escuro);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    user-select: none;
+}
+
 /* Customização dos Cards */
 .card-casamento {
     background-color: var(--off-white);

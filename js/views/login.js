@@ -20,6 +20,9 @@ export default function LoginView() {
                 const dados = await API.login(username, password);
                 // Grava localmente que o usuário está autenticado para liberar as rotas da SPA
                 localStorage.setItem('is_logged', 'true');
+                // Guarda a role e o nome para controlar a navbar (avatar + submenus)
+                localStorage.setItem('user_role', dados.usuario.role);
+                localStorage.setItem('user_name', dados.usuario.name);
 
                 // Se for o casal Lucas e Amanda, redireciona para o painel de administração
                 if (dados.usuario.role === 'noivos') {
