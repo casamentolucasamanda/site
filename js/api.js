@@ -65,7 +65,7 @@ export const API = {
         }
     },
     
-    // Método para os noivos registrarem novos convidados
+    // Método para os noivos registrarem novos convidados (rota administrativa)
     async cadastrarConvidado(nome, usuario, senha) {
         const options = getFetchOptions({ 'Content-Type': 'application/json' });
         const response = await fetch('/api/usuarios/cadastrar', {
@@ -73,7 +73,18 @@ export const API = {
             method: 'POST',
             body: JSON.stringify({ name: nome, username: usuario, password: senha, role: 'convidado' })
         });
-        return response.json();
+
+        if (verificar401(response)) throw new Error('Não autenticado');
+        if (response.status === 403) throw new Error('Acesso restrito apenas aos noivos');
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const erros = data.errors ? Object.values(data.errors).flat().join(' ') : (data.mensagem || 'Erro ao cadastrar convidado.');
+            throw new Error(erros);
+        }
+
+        return data;
     },
 
     // Autentica o usuário (convidados ou noivos)

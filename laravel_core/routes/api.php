@@ -26,9 +26,6 @@ Route::get('/debug-auth', function (Request $request) {
 // Qualquer usuário logado (noivos ou convidados) consegue acessar este grupo
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Apenas os noivos podem cadastrar novos convidados ou novos usuários
-    Route::post('/usuarios/cadastrar', [AuthController::class, 'register']);
-    
     // Retorna os dados do usuário atual (Útil para a SPA checar se ainda está logado)
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
@@ -170,6 +167,9 @@ Route::middleware('auth:sanctum')->group(function () {
 // Além de estar logado, o usuário PRECISA ter a role 'noivos'
 Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
     
+    // Rota administrativa: apenas os noivos podem cadastrar novos convidados ou novos usuários
+    Route::post('/usuarios/cadastrar', [AuthController::class, 'register']);
+
     // Endpoint para os noivos visualizarem os relatórios em tempo real no Dashboard
     Route::get('/painel-noivos/resumo', function () {
         $confirmados = App\Models\Presenca::where('confirmado', true)->with('user:id,name')->get();

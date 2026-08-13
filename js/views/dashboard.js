@@ -48,6 +48,32 @@ export default function DashboardView() {
             });
         }
 
+        // Formulário administrativo para cadastrar novos convidados
+        const formCadastrar = document.getElementById('form-cadastrar-convidado');
+        if (formCadastrar) {
+            formCadastrar.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-cadastrar-convidado');
+                const nome = document.getElementById('novo-convidado-nome').value.trim();
+                const usuario = document.getElementById('novo-convidado-usuario').value.trim();
+                const senha = document.getElementById('novo-convidado-senha').value;
+
+                btn.disabled = true;
+                btn.innerText = 'Cadastrando...';
+                try {
+                    await API.cadastrarConvidado(nome, usuario, senha);
+                    alert('Convidado cadastrado com sucesso!');
+                    formCadastrar.reset();
+                    carregarDados();
+                } catch (err) {
+                    alert(err.message || 'Erro ao cadastrar convidado.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'Cadastrar';
+                }
+            });
+        }
+
         // Botão para os noivos executarem as migrations do banco
         const btnMigrate = document.getElementById('btn-migrate');
         if (btnMigrate) {
@@ -219,6 +245,28 @@ export default function DashboardView() {
             <div class="mb-4">
                 <h5 class="mb-3">Convidados Confirmados</h5>
                 <ul id="lista-confirmados" class="list-group"></ul>
+            </div>
+
+            <div class="mb-4 p-3 border rounded bg-white">
+                <h5 class="mb-3">Cadastrar Convidado</h5>
+                <p class="text-muted small mb-3">Crie o acesso de um novo convidado para confirmar presença e reservar presentes.</p>
+                <form id="form-cadastrar-convidado" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1" for="novo-convidado-nome">Nome Completo *</label>
+                        <input type="text" id="novo-convidado-nome" class="form-control" required maxlength="255" placeholder="Ex: Maria da Silva">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1" for="novo-convidado-usuario">Usuário de Acesso *</label>
+                        <input type="text" id="novo-convidado-usuario" class="form-control" required maxlength="255" placeholder="Ex: maria_silva">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1" for="novo-convidado-senha">Senha * (mín. 6)</label>
+                        <input type="password" id="novo-convidado-senha" class="form-control" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" id="btn-cadastrar-convidado" class="btn btn-casamento">Cadastrar</button>
+                    </div>
+                </form>
             </div>
 
             <div class="text-center border rounded p-4 bg-light">
