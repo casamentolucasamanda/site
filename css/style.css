@@ -13,7 +13,7 @@
 }
 
 body {
-    background: linear-gradient(rgba(232, 239, 233, 0.45), rgba(232, 239, 233, 0.45)), url('/images/fundo-home.jpg') no-repeat center center fixed;
+    background: linear-gradient(rgba(232, 239, 233, 0.45), rgba(232, 239, 233, 0.45)), url('site/images/fundo-home.jpg') no-repeat center center fixed;
     background-size: cover;
     color: var(--texto-escuro);
     font-family: 'Montserrat', sans-serif;
@@ -22,7 +22,12 @@ body {
     flex-direction: column;
 }
 
-h1, h2, h3, h4, h5, .serif-font {
+h1,
+h2,
+h3,
+h4,
+h5,
+.serif-font {
     font-family: 'Playfair Display', serif;
 }
 
@@ -134,7 +139,8 @@ h1, h2, h3, h4, h5, .serif-font {
 }
 
 /* Form inputs styling */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: 12px;
     border: 1px solid #cce0d2;
     padding: 0.75rem 1rem;
@@ -143,7 +149,8 @@ h1, h2, h3, h4, h5, .serif-font {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--verde-suave);
     box-shadow: 0 0 0 0.25rem rgba(61, 107, 79, 0.25);
 }
