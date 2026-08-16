@@ -15,6 +15,7 @@ class Presente extends Model
         'nome',
         'descricao',
         'valor_estimado',
+        'imagem_url',
         'user_id',
         'recebido'
     ];

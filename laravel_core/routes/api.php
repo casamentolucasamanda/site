@@ -71,7 +71,7 @@ function gerarPayloadPix($config, $valor)
 
 
 // --- ROTAS PÚBLICAS DE AUTENTICAÇÃO ---
-// Endpoint de login (Usado tanto por Lucas & Amanda quanto pelos convidados)
+// Endpoint de login (Usado tanto por Amanda & Lucas quanto pelos convidados)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/debug-auth', function (Request $request) {
@@ -85,7 +85,18 @@ Route::get('/debug-auth', function (Request $request) {
 // --- ROTAS PROTEGIDAS PELO SANCTUM ---
 // Qualquer usuário logado (noivos ou convidados) consegue acessar este grupo
 Route::middleware('auth:sanctum')->group(function () {
-    
+    Route::get('/me', function (Request $request) {
+        return response()->json([
+            'usuario' => [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'username' => $request->user()->username,
+                'email' => $request->user()->email,
+                'role' => $request->user()->role,
+            ]
+        ]);
+    });
+
     // Endpoints para ações dos convidados
     Route::get('/presenca', function (Request $request) {
         $presenca = App\Models\Presenca::where('user_id', $request->user()->id)->first();

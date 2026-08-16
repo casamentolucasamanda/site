@@ -138,9 +138,18 @@ export default async function PresentesView() {
             `;
         }
 
+        const imagemHtml = item.imagem_url 
+            ? `<div class="position-relative overflow-hidden rounded mb-3" style="height: 180px;">
+                    <img src="${item.imagem_url}" alt="${item.nome}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'p-3 bg-light rounded text-center text-muted d-flex align-items-center justify-content-center\' style=\'height: 140px;\'><span class=\'fs-1\'>🎁</span></div>';">
+               </div>`
+            : `<div class="p-3 bg-light rounded text-center mb-3 text-muted d-flex align-items-center justify-content-center" style="height: 140px;">
+                    <span class="fs-1">🎁</span>
+               </div>`;
+
         return `
             <div class="col-md-4 mb-4">
                 <div class="card h-100 border-0 shadow-sm bg-white p-3 card-casamento">
+                    ${imagemHtml}
                     <div class="card-body text-center d-flex flex-column justify-content-between p-2">
                         <div>
                             <h5 class="card-title serif-font fw-bold text-dark mb-2">${item.nome}</h5>

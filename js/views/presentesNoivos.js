@@ -36,7 +36,11 @@ function abrirModalEdicao(presente, aoSalvar) {
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Descrição</label>
-                            <textarea id="editar-presente-descricao" class="form-control" maxlength="500" rows="3" placeholder="Ex: Conjunto completo de panelas">${presente.descricao || ''}</textarea>
+                            <textarea id="editar-presente-descricao" class="form-control" maxlength="500" rows="2" placeholder="Ex: Conjunto completo de panelas">${presente.descricao || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Link da Imagem (URL)</label>
+                            <input type="url" id="editar-presente-imagem" class="form-control" placeholder="https://exemplo.com/foto.jpg" value="${presente.imagem_url || ''}">
                         </div>
                     </div>
                     <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
@@ -56,13 +60,14 @@ function abrirModalEdicao(presente, aoSalvar) {
         const btn = document.getElementById('btn-salvar-edicao');
         const nome = document.getElementById('editar-presente-nome').value.trim();
         const descricao = document.getElementById('editar-presente-descricao').value.trim();
+        const imagemUrl = document.getElementById('editar-presente-imagem').value.trim();
         const valorRaw = document.getElementById('editar-presente-valor').value.replace(',', '.');
         const valor = valorRaw !== '' ? parseFloat(valorRaw) : null;
 
         btn.disabled = true;
         btn.innerText = 'Salvando...';
         try {
-            await aoSalvar(presente.id, nome, descricao, valor);
+            await aoSalvar(presente.id, nome, descricao, valor, imagemUrl);
             bsModal.hide();
         } catch (err) {
             alert(err.message || 'Erro ao salvar presente.');
@@ -115,13 +120,14 @@ export default function PresentesNoivosView() {
                 const btn = formNovoPresente.querySelector('button[type="submit"]');
                 const nome = document.getElementById('novo-presente-nome').value.trim();
                 const descricao = document.getElementById('novo-presente-descricao').value.trim();
+                const imagemUrl = document.getElementById('novo-presente-imagem').value.trim();
                 const valorRaw = document.getElementById('novo-presente-valor').value.replace(',', '.');
                 const valor = valorRaw !== '' ? parseFloat(valorRaw) : null;
 
                 btn.disabled = true;
                 btn.innerText = 'Adicionando...';
                 try {
-                    await API.cadastrarPresente(nome, descricao, valor);
+                    await API.cadastrarPresente(nome, descricao, valor, imagemUrl);
                     formNovoPresente.reset();
                     alert('Presente adicionado com sucesso!');
                     carregarPresentes();
@@ -142,8 +148,8 @@ export default function PresentesNoivosView() {
                     const id = e.target.getAttribute('data-presente-id');
                     const item = presentesCache.find(p => p.id === id);
                     if (!item) return;
-                    abrirModalEdicao(item, async (pid, nome, descricao, valor) => {
-                        await API.atualizarPresente(pid, nome, descricao, valor);
+                    abrirModalEdicao(item, async (pid, nome, descricao, valor, imgUrl) => {
+                        await API.atualizarPresente(pid, nome, descricao, valor, imgUrl);
                         alert('Presente atualizado com sucesso!');
                         carregarPresentes();
                     });
@@ -325,7 +331,7 @@ export default function PresentesNoivosView() {
             <div class="mb-4">
                 <h5 class="mb-3">Adicionar Novo Presente</h5>
                 <form id="form-novo-presente" class="row g-2 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label small mb-1">Nome do Presente *</label>
                         <input type="text" id="novo-presente-nome" class="form-control" required maxlength="255" placeholder="Ex: Jogo de Panelas">
                     </div>
@@ -333,9 +339,13 @@ export default function PresentesNoivosView() {
                         <label class="form-label small mb-1">Valor (R$)</label>
                         <input type="text" id="novo-presente-valor" class="form-control" inputmode="decimal" placeholder="Ex: 250,00">
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Link da Imagem (URL)</label>
+                        <input type="url" id="novo-presente-imagem" class="form-control" placeholder="https://.../foto.jpg">
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small mb-1">Descrição (opcional)</label>
-                        <input type="text" id="novo-presente-descricao" class="form-control" maxlength="500" placeholder="Ex: Conjunto completo de panelas">
+                        <input type="text" id="novo-presente-descricao" class="form-control" maxlength="500" placeholder="Ex: 5 peças antiaderentes">
                     </div>
                     <div class="col-md-1 d-grid">
                         <button type="submit" class="btn btn-casamento" title="Adicionar presente">+</button>

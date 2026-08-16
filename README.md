@@ -1,4 +1,4 @@
-# Casamento Lucas & Amanda — Site
+# Casamento Amanda & Lucas — Site
 
 Site do casamento com **lista de presentes via PIX**, **confirmação de presença** e **painel administrativo para os noivos**.
 

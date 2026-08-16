@@ -1,9 +1,9 @@
-// Garante o próximo dia 17 de Outubro (casamento) a partir de hoje
+// Garante o dia 01 de Outubro de 2026 (casamento)
 function proximaDataCasamento() {
     const agora = new Date();
-    let alvo = new Date(agora.getFullYear(), 9, 17, 0, 0, 0);
+    let alvo = new Date(2026, 9, 1, 0, 0, 0);
     if (agora > alvo) {
-        alvo = new Date(agora.getFullYear() + 1, 9, 17, 0, 0, 0);
+        alvo = new Date(agora.getFullYear() + 1, 9, 1, 0, 0, 0);
     }
     return alvo;
 }
@@ -55,28 +55,26 @@ export default function HomeView() {
             <div class="col-lg-9">
                 <div class="card-casamento p-5 home-hero">
                     <p class="home-eyebrow mb-2">Com imensa alegria, convidamos você a celebrar conosco</p>
-                    <h1 class="display-4 mb-1 serif-font">Lucas & Amanda</h1>
+                    <h1 class="display-4 mb-1 serif-font">Amanda & Lucas</h1>
                     <div class="brand-cursive mb-3">estamos nos casando!</div>
 
                     <div class="d-flex justify-content-center align-items-center gap-3 my-3">
                         <span class="divider-dourado-home"></span>
-                        <span class="fs-5 fw-semibold text-uppercase text-secondary" style="letter-spacing: 3px;">17 de Outubro</span>
+                        <span class="fs-5 fw-semibold text-uppercase text-secondary" style="letter-spacing: 3px;">01 de Outubro de 2026</span>
                         <span class="divider-dourado-home"></span>
                     </div>
 
-                    <p class="lead fs-6 text-muted mx-auto mb-4 home-mensagem">
-                        "Que o nosso amor seja como um jardim que floresce a cada estação: regado
-                        com carinho, cuidado com paciência e iluminado pela bênção de Deus. Este é
-                        um dos dias mais felizes das nossas vidas, e não seria completo sem a
-                        presença de pessoas tão queridas. Vem celebrar esse momento com a gente!"
-                    </p>
-
                     <div id="countdown" class="countdown d-flex justify-content-center align-items-center my-4"></div>
 
-                    <div class="d-flex justify-content-center gap-2 my-4 flex-wrap">
-                        <span class="badge bg-secondary p-2 px-3 m-1">💒 Cerimônia & Recepção</span>
-                        <span class="badge bg-secondary p-2 px-3 m-1">📍 Recepção Privada</span>
-                        <span class="badge bg-secondary p-2 px-3 m-1">⏰ A partir das 19h</span>
+                    <div class="d-flex justify-content-center gap-2 my-4 flex-wrap align-items-center">
+                        <a href="/cerimonia" data-link class="badge badge-verde badge-link p-2 px-3 m-1 d-inline-flex align-items-center gap-2 text-decoration-none">
+                            <img src="/images/icone-local.png" alt="Cerimônia" class="badge-icon-local">
+                            <span>Cerimônia Civil (11h)</span>
+                        </a>
+                        <a href="/recepcao" data-link class="badge badge-verde badge-link p-2 px-3 m-1 d-inline-flex align-items-center gap-2 text-decoration-none">
+                            <img src="/images/icone-recepcao.png" alt="Recepção" class="badge-icon-local">
+                            <span>Recepção (12h30)</span>
+                        </a>
                     </div>
 
                     <hr class="my-4" style="opacity: 0.1;">
