@@ -1,5 +1,30 @@
+import { API } from '../api.js';
+
+const recepcao = {
+    tipo: '',
+    horario: '',
+    nome: '',
+    endereco: '',
+    cidadeUf: '',
+    mapsUrl: '',
+    mapaIframe: ''
+};
+
 export default async function RecepcaoView() {
 
+    try {
+        const localData = await API.getLocal('RECEPCAO');
+        if (localData && localData.nome) {
+            recepcao.nome = localData.nome || recepcao.nome;
+            recepcao.endereco = localData.endereco || recepcao.endereco;
+            recepcao.cidadeUf = localData.cidade_uf || recepcao.cidadeUf;
+            const enderecoCompleto = [localData.endereco, localData.cidade_uf].filter(Boolean).join(', ');
+            if (enderecoCompleto) recepcao.mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}`;
+            if (localData.mapa_iframe) recepcao.mapaIframe = localData.mapa_iframe;
+        }
+    } catch (error) {
+        console.log('Exibindo informações padrão da recepção.');
+    }
 
     return `
         <div class="row justify-content-center">
@@ -21,7 +46,7 @@ export default async function RecepcaoView() {
                     <p class="text-muted small mb-3">${recepcao.cidadeUf}</p>
                     
                     <a href="${recepcao.mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2">
-                        📍 Abrir no Google Maps
+                        <img src="/images/icone-local.png" alt="Local" class="badge-icon-verde"> Abrir no Google Maps
                     </a>
                 </div>
 
@@ -30,7 +55,7 @@ export default async function RecepcaoView() {
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-                    <a href="/cerimonia" data-link class="btn btn-outline-secondary rounded-pill px-4 py-2">Ver Cerimônia Civil 🏛️</a>
+                    <a href="/cerimonia" data-link class="btn btn-outline-secondary rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2">Ver Cerimônia Civil <img src="/images/icone-local.png" alt="Cerimônia" class="badge-icon-verde"></a>
                     <a href="/" data-link class="btn btn-casamento px-4 py-2">Voltar ao Início</a>
                 </div>
             </div>

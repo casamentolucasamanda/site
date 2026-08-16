@@ -1,17 +1,50 @@
 import { API } from '../api.js';
 
+const cerimonia = {
+    horario: '',
+    nome: '',
+    endereco: '',
+    cidadeUf: '',
+    mapsUrl: '',
+    mapaIframe: ''
+};
+
+const recepcao = {
+    horario: '',
+    nome: '',
+    endereco: '',
+    cidadeUf: '',
+    mapsUrl: '',
+    mapaIframe: ''
+};
+
+function buildMapsUrl(endereco, cidadeUf) {
+    const enderecoCompleto = [endereco, cidadeUf].filter(Boolean).join(', ');
+    return enderecoCompleto ? `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}` : 'https://maps.google.com';
+}
+
 export default async function LocalView() {
 
-
-
     try {
-        const localData = await API.getLocal();
-        if (localData && localData.nome) {
-            cerimonia.nome = localData.nome || cerimonia.nome;
-            cerimonia.endereco = localData.endereco || cerimonia.endereco;
-            cerimonia.cidadeUf = localData.cidade_uf || cerimonia.cidadeUf;
-            if (localData.maps_url) cerimonia.mapsUrl = localData.maps_url;
-            if (localData.mapa_iframe) cerimonia.mapaIframe = localData.mapa_iframe;
+        const locais = await API.getLocal();
+
+        const cerimoniaData = locais.find(l => l.tipo === 'CERIMONIA');
+        const recepcaoData = locais.find(l => l.tipo === 'RECEPCAO');
+
+        if (cerimoniaData && cerimoniaData.nome) {
+            cerimonia.nome = cerimoniaData.nome || cerimonia.nome;
+            cerimonia.endereco = cerimoniaData.endereco || cerimonia.endereco;
+            cerimonia.cidadeUf = cerimoniaData.cidade_uf || cerimonia.cidadeUf;
+            cerimonia.mapsUrl = buildMapsUrl(cerimoniaData.endereco, cerimoniaData.cidade_uf);
+            if (cerimoniaData.mapa_iframe) cerimonia.mapaIframe = cerimoniaData.mapa_iframe;
+        }
+
+        if (recepcaoData && recepcaoData.nome) {
+            recepcao.nome = recepcaoData.nome || recepcao.nome;
+            recepcao.endereco = recepcaoData.endereco || recepcao.endereco;
+            recepcao.cidadeUf = recepcaoData.cidade_uf || recepcao.cidadeUf;
+            recepcao.mapsUrl = buildMapsUrl(recepcaoData.endereco, recepcaoData.cidade_uf);
+            if (recepcaoData.mapa_iframe) recepcao.mapaIframe = recepcaoData.mapa_iframe;
         }
     } catch (error) {
         console.log('Exibindo informações dos locais do casamento.');
@@ -43,7 +76,7 @@ export default async function LocalView() {
                             <p class="text-muted extra-small mb-2">${cerimonia.cidadeUf}</p>
                             
                             <a href="${cerimonia.mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
-                                📍 Abrir no Google Maps
+                                <img src="/images/icone-local.png" alt="Local" class="badge-icon-verde"> Abrir no Google Maps
                             </a>
                         </div>
                     </div>
@@ -73,7 +106,7 @@ export default async function LocalView() {
                             <p class="text-muted extra-small mb-2">${recepcao.cidadeUf}</p>
                             
                             <a href="${recepcao.mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
-                                📍 Abrir no Google Maps
+                                <img src="/images/icone-local.png" alt="Local" class="badge-icon-verde"> Abrir no Google Maps
                             </a>
                         </div>
                     </div>

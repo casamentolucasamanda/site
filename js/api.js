@@ -228,7 +228,8 @@ export const API = {
         return await safeJsonFetch('/api/admin/migrate');
     },
 
-    async getLocal() {
-        return await safeJsonFetch('/api/local');
+    async getLocal(tipo) {
+        const url = tipo ? `/api/local?tipo=${encodeURIComponent(tipo)}` : '/api/local';
+        return await safeJsonFetch(url);
     }
 };

@@ -129,12 +129,42 @@ const router = async () => {
     atualizarMenu(); // Ajusta os botões após a troca de tela
 };
 
+// Fecha todos os dropdowns abertos
+function fecharDropdowns() {
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+        const toggle = menu.previousElementSibling;
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
+}
+
+// Fecha o menu mobile (navbar collapse)
+function fecharNavbar() {
+    const navbar = document.getElementById('navbarNav');
+    if (navbar && navbar.classList.contains('show')) {
+        const toggler = document.querySelector('.navbar-toggler');
+        if (toggler) toggler.click();
+    }
+}
+
 // Captura cliques globais (Links normais e o botão dinâmico de Logout)
 document.addEventListener('click', async e => {
-    if (e.target.matches('[data-link]')) {
+    const link = e.target.closest('[data-link]');
+    if (link) {
         e.preventDefault();
-        window.history.pushState({}, '', e.target.href);
+        fecharDropdowns();
+        fecharNavbar();
+        window.history.pushState({}, '', link.href);
         router();
+        return;
+    }
+
+    // Fecha dropdowns e navbar ao clicar fora
+    if (!e.target.closest('.navbar')) {
+        fecharDropdowns();
+        fecharNavbar();
+    } else if (!e.target.closest('.dropdown')) {
+        fecharDropdowns();
     }
     
     if (e.target.id === 'btn-logout') {

@@ -37,6 +37,7 @@ h1, h2, h3, h4, h5, .serif-font {
     background-color: rgba(255, 253, 250, 0.95) !important;
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(45, 90, 63, 0.15);
+    z-index: 1050;
 }
 
 .navbar-casamento .nav-link {
@@ -161,6 +162,13 @@ h1, h2, h3, h4, h5, .serif-font {
     width: auto;
     object-fit: contain;
     filter: brightness(0) invert(1);
+}
+
+.badge-icon-verde {
+    height: 18px;
+    width: auto;
+    object-fit: contain;
+    filter: invert(31%) sepia(26%) saturate(1061%) hue-rotate(95deg) brightness(96%) contrast(92%);
 }
 
 .badge-link {

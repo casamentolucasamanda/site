@@ -12,6 +12,7 @@ class Local extends Model
     protected $table = 'locais';
 
     protected $fillable = [
+        'tipo',
         'nome',
         'endereco',
         'cidade_uf',

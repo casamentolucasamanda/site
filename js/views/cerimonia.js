@@ -1,5 +1,30 @@
+import { API } from '../api.js';
+
+const cerimonia = {
+    tipo: 'Cartório',
+    horario: '11h',
+    nome: 'Igreja de Santa Maria',
+    endereco: 'Rua das Flores, 123',
+    cidadeUf: 'São Paulo - SP',
+    mapsUrl: 'https://maps.google.com',
+    mapaIframe: ''
+};
+
 export default async function CerimoniaView() {
 
+    try {
+        const localData = await API.getLocal('CERIMONIA');
+        if (localData && localData.nome) {
+            cerimonia.nome = localData.nome || cerimonia.nome;
+            cerimonia.endereco = localData.endereco || cerimonia.endereco;
+            cerimonia.cidadeUf = localData.cidade_uf || cerimonia.cidadeUf;
+            const enderecoCompleto = [localData.endereco, localData.cidade_uf].filter(Boolean).join(', ');
+            if (enderecoCompleto) cerimonia.mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}`;
+            if (localData.mapa_iframe) cerimonia.mapaIframe = localData.mapa_iframe;
+        }
+    } catch (error) {
+        console.log('Exibindo informações padrão da cerimônia.');
+    }
 
     return `
         <div class="row justify-content-center">
@@ -21,7 +46,7 @@ export default async function CerimoniaView() {
                     <p class="text-muted small mb-3">${cerimonia.cidadeUf}</p>
                     
                     <a href="${cerimonia.mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2">
-                        📍 Abrir no Google Maps
+                        <img src="/images/icone-local.png" alt="Local" class="badge-icon-verde"> Abrir no Google Maps
                     </a>
                 </div>
 
@@ -30,7 +55,7 @@ export default async function CerimoniaView() {
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-                    <a href="/recepcao" data-link class="btn btn-outline-secondary rounded-pill px-4 py-2">Ver Recepção 🎂</a>
+                    <a href="/recepcao" data-link class="btn btn-outline-secondary rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2">Ver Recepção <img src="/images/icone-recepcao.png" alt="Recepção" class="badge-icon-verde"></a>
                     <a href="/" data-link class="btn btn-casamento px-4 py-2">Voltar ao Início</a>
                 </div>
             </div>

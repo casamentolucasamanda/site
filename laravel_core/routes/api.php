@@ -216,23 +216,42 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/local', function () {
-        $local = App\Models\Local::first();
+        $tipo = request()->query('tipo');
 
-        if (!$local) {
+        $query = App\Models\Local::query();
+
+        if ($tipo && in_array($tipo, ['CERIMONIA', 'RECEPCAO'])) {
+            $query->where('tipo', $tipo);
+            $local = $query->first();
+
+            if (!$local) {
+                return response()->json([
+                    'tipo' => null,
+                    'nome' => null,
+                    'endereco' => null,
+                    'cidade_uf' => null,
+                    'mapa_iframe' => null,
+                ]);
+            }
+
             return response()->json([
-                'nome' => null,
-                'endereco' => null,
-                'cidade_uf' => null,
-                'mapa_iframe' => null,
+                'tipo' => $local->tipo,
+                'nome' => $local->nome,
+                'endereco' => $local->endereco,
+                'cidade_uf' => $local->cidade_uf,
+                'mapa_iframe' => $local->mapa_iframe,
             ]);
         }
 
-        return response()->json([
-            'nome' => $local->nome,
-            'endereco' => $local->endereco,
-            'cidade_uf' => $local->cidade_uf,
-            'mapa_iframe' => $local->mapa_iframe,
+        $locais = $query->get()->map(fn ($l) => [
+            'tipo' => $l->tipo,
+            'nome' => $l->nome,
+            'endereco' => $l->endereco,
+            'cidade_uf' => $l->cidade_uf,
+            'mapa_iframe' => $l->mapa_iframe,
         ]);
+
+        return response()->json($locais);
     });
 });
 
