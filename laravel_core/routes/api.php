@@ -197,7 +197,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         $valorFormatado = 'R$ ' . number_format($presente->valor_estimado, 2, ',', '.');
         $pixPayload = gerarPayloadPix($pixConfig, $presente->valor_estimado);
-        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" . urlencode($pixPayload);
 
         return response()->json([
             'status' => 'sucesso',
@@ -210,7 +209,6 @@ Route::middleware('auth:sanctum')->group(function () {
             'pix' => [
                 'chave' => $pixConfig->chave_pix,
                 'payload' => $pixPayload,
-                'qr_code_url' => $qrCodeUrl
             ]
         ]);
     });

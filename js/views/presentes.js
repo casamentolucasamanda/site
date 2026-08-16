@@ -23,7 +23,7 @@ function abrirModalPix(dados) {
                     <span class="badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill mb-3">${dados.presente.valor}</span>
                     
                     <div class="my-3 p-3 bg-light rounded-3 d-inline-block border">
-                        <img src="${dados.pix.qr_code_url}" alt="QR Code PIX" class="img-fluid rounded shadow-sm" style="max-width: 220px;">
+                        <div id="pix-qrcode"></div>
                     </div>
 
                     <div class="text-start mt-3">
@@ -48,6 +48,19 @@ function abrirModalPix(dados) {
     bsModal.show();
 
     setTimeout(() => {
+        const qrcodeEl = document.getElementById('pix-qrcode');
+        if (qrcodeEl && typeof QRCode !== 'undefined') {
+            qrcodeEl.innerHTML = '';
+            new QRCode(qrcodeEl, {
+                text: dados.pix.payload,
+                width: 220,
+                height: 220,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
         const btnCopiar = document.getElementById('btn-copiar-pix');
         const txtPix = document.getElementById('pix-copia-cola');
         if (btnCopiar && txtPix) {
