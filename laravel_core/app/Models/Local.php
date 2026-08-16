@@ -13,6 +13,7 @@ class Local extends Model
 
     protected $fillable = [
         'tipo',
+        'horario',
         'nome',
         'endereco',
         'cidade_uf',

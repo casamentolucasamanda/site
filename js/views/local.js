@@ -35,6 +35,7 @@ export default async function LocalView() {
             cerimonia.nome = cerimoniaData.nome || cerimonia.nome;
             cerimonia.endereco = cerimoniaData.endereco || cerimonia.endereco;
             cerimonia.cidadeUf = cerimoniaData.cidade_uf || cerimonia.cidadeUf;
+            if (cerimoniaData.horario) cerimonia.horario = cerimoniaData.horario;
             cerimonia.mapsUrl = buildMapsUrl(cerimoniaData.endereco, cerimoniaData.cidade_uf);
             if (cerimoniaData.mapa_iframe) cerimonia.mapaIframe = cerimoniaData.mapa_iframe;
         }
@@ -43,6 +44,7 @@ export default async function LocalView() {
             recepcao.nome = recepcaoData.nome || recepcao.nome;
             recepcao.endereco = recepcaoData.endereco || recepcao.endereco;
             recepcao.cidadeUf = recepcaoData.cidade_uf || recepcao.cidadeUf;
+            if (recepcaoData.horario) recepcao.horario = recepcaoData.horario;
             recepcao.mapsUrl = buildMapsUrl(recepcaoData.endereco, recepcaoData.cidade_uf);
             if (recepcaoData.mapa_iframe) recepcao.mapaIframe = recepcaoData.mapa_iframe;
         }

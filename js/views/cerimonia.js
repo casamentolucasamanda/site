@@ -1,12 +1,12 @@
 import { API } from '../api.js';
 
 const cerimonia = {
-    tipo: 'Cartório',
-    horario: '11h',
-    nome: 'Igreja de Santa Maria',
-    endereco: 'Rua das Flores, 123',
-    cidadeUf: 'São Paulo - SP',
-    mapsUrl: 'https://maps.google.com',
+    tipo: '',
+    horario: '',
+    nome: '',
+    endereco: '',
+    cidadeUf: '',
+    mapsUrl: '',
     mapaIframe: ''
 };
 
@@ -18,6 +18,7 @@ export default async function CerimoniaView() {
             cerimonia.nome = localData.nome || cerimonia.nome;
             cerimonia.endereco = localData.endereco || cerimonia.endereco;
             cerimonia.cidadeUf = localData.cidade_uf || cerimonia.cidadeUf;
+            if (localData.horario) cerimonia.horario = localData.horario;
             const enderecoCompleto = [localData.endereco, localData.cidade_uf].filter(Boolean).join(', ');
             if (enderecoCompleto) cerimonia.mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}`;
             if (localData.mapa_iframe) cerimonia.mapaIframe = localData.mapa_iframe;

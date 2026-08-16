@@ -18,6 +18,7 @@ export default async function RecepcaoView() {
             recepcao.nome = localData.nome || recepcao.nome;
             recepcao.endereco = localData.endereco || recepcao.endereco;
             recepcao.cidadeUf = localData.cidade_uf || recepcao.cidadeUf;
+            if (localData.horario) recepcao.horario = localData.horario;
             const enderecoCompleto = [localData.endereco, localData.cidade_uf].filter(Boolean).join(', ');
             if (enderecoCompleto) recepcao.mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}`;
             if (localData.mapa_iframe) recepcao.mapaIframe = localData.mapa_iframe;

@@ -227,6 +227,7 @@ Route::middleware('auth:sanctum')->group(function () {
             if (!$local) {
                 return response()->json([
                     'tipo' => null,
+                    'horario' => null,
                     'nome' => null,
                     'endereco' => null,
                     'cidade_uf' => null,
@@ -236,6 +237,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             return response()->json([
                 'tipo' => $local->tipo,
+                'horario' => $local->horario,
                 'nome' => $local->nome,
                 'endereco' => $local->endereco,
                 'cidade_uf' => $local->cidade_uf,
@@ -245,6 +247,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         $locais = $query->get()->map(fn ($l) => [
             'tipo' => $l->tipo,
+            'horario' => $l->horario,
             'nome' => $l->nome,
             'endereco' => $l->endereco,
             'cidade_uf' => $l->cidade_uf,

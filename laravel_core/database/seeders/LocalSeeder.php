@@ -9,9 +9,10 @@ class LocalSeeder extends Seeder
 {
     public function run(): void
     {
-        Local::firstOrCreate(
+        Local::updateOrCreate(
             ['tipo' => 'CERIMONIA'],
             [
+                'horario' => '11h',
                 'nome' => 'Cartório de Registro Civil',
                 'endereco' => 'Rua das Flores, nº 123 - Centro',
                 'cidade_uf' => 'Cidade do Casamento - UF',
@@ -19,9 +20,10 @@ class LocalSeeder extends Seeder
             ]
         );
 
-        Local::firstOrCreate(
+        Local::updateOrCreate(
             ['tipo' => 'RECEPCAO'],
             [
+                'horario' => '12h30',
                 'nome' => 'Espaço Jardim dos Sonhos',
                 'endereco' => 'Avenida das Flores, nº 1500 - Bairro Primavera',
                 'cidade_uf' => 'Cidade do Casamento - UF',
