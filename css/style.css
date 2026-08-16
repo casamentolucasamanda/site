@@ -1,16 +1,20 @@
 :root {
-    --rosa-pastel: #f7d6d0;
-    --rosa-pastel-hover: #eec2b9;
+    --verde-principal: #2d5a3f;
+    --verde-medio: #3d6b4f;
+    --verde-suave: #8aa892;
     --verde-salvia: #e8efe9;
+    --verde-pastel: #d4e5d7;
+    --verde-hover: #1e3d2a;
     --off-white: #fffdfa;
-    --dourado-suave: #d4af37;
-    --texto-escuro: #3d3d3d;
-    --texto-suave: #6c757d;
-    --sombra-suave: 0 10px 30px rgba(0, 0, 0, 0.05);
+    --dourado-suave: #c5a059;
+    --texto-escuro: #233327;
+    --texto-suave: #4e6354;
+    --sombra-suave: 0 10px 30px rgba(45, 90, 63, 0.08);
 }
 
 body {
-    background-color: var(--verde-salvia);
+    background: linear-gradient(rgba(232, 239, 233, 0.45), rgba(232, 239, 233, 0.45)), url('/images/fundo-home.jpg') no-repeat center center fixed;
+    background-size: cover;
     color: var(--texto-escuro);
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
@@ -25,14 +29,15 @@ h1, h2, h3, h4, h5, .serif-font {
 .brand-cursive {
     font-family: 'Great Vibes', cursive;
     font-size: 1.8rem;
-    color: var(--texto-escuro);
+    color: var(--verde-principal);
 }
 
 /* Customização de Navbar */
 .navbar-casamento {
     background-color: rgba(255, 253, 250, 0.95) !important;
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+    border-bottom: 1px solid rgba(45, 90, 63, 0.15);
+    z-index: 1050;
 }
 
 .navbar-casamento .nav-link {
@@ -44,8 +49,37 @@ h1, h2, h3, h4, h5, .serif-font {
 }
 
 .navbar-casamento .nav-link:hover {
-    color: var(--dourado-suave) !important;
+    color: var(--verde-principal) !important;
     transform: translateY(-1px);
+}
+
+/* Botão hambúrguer do menu em telas menores */
+.navbar-casamento .navbar-toggler {
+    border: 1px solid rgba(45, 90, 63, 0.2);
+}
+
+.navbar-casamento .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(138, 168, 146, 0.4);
+}
+
+.navbar-casamento .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(45,90,63,0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Ícones de Alianças Customizados */
+.navbar-icon-aliancas {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    filter: invert(31%) sepia(26%) saturate(1061%) hue-rotate(95deg) brightness(96%) contrast(92%);
+    transition: transform 0.3s ease;
+}
+
+.home-icon-aliancas {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    filter: invert(31%) sepia(26%) saturate(1061%) hue-rotate(95deg) brightness(96%) contrast(92%);
 }
 
 /* Avatar com iniciais do usuário logado */
@@ -56,51 +90,53 @@ h1, h2, h3, h4, h5, .serif-font {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--rosa-pastel), #fcdbd5);
-    color: var(--texto-escuro);
+    background: linear-gradient(135deg, var(--verde-suave), var(--verde-principal));
+    color: #ffffff;
     font-weight: 700;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
-    border: 1px solid rgba(212, 175, 55, 0.25);
+    border: 1px solid rgba(197, 160, 89, 0.3);
     user-select: none;
 }
 
 /* Customização dos Cards */
 .card-casamento {
-    background-color: var(--off-white);
-    border: 1px solid rgba(212, 175, 55, 0.1);
+    background-color: rgba(255, 253, 250, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(45, 90, 63, 0.15);
     border-radius: 20px;
     box-shadow: var(--sombra-suave);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card-casamento:hover {
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 15px 35px rgba(45, 90, 63, 0.12);
 }
 
 /* Botões Customizados */
 .btn-casamento {
-    background: linear-gradient(135deg, var(--rosa-pastel), #fcdbd5);
-    color: var(--texto-escuro);
+    background: linear-gradient(135deg, var(--verde-medio), var(--verde-principal));
+    color: #ffffff;
     font-weight: 600;
     border: none;
     border-radius: 30px;
     padding: 0.6rem 1.8rem;
-    box-shadow: 0 4px 12px rgba(247, 214, 208, 0.4);
+    box-shadow: 0 4px 14px rgba(45, 90, 63, 0.3);
     transition: all 0.3s ease;
 }
 
 .btn-casamento:hover {
-    background: linear-gradient(135deg, var(--rosa-pastel-hover), #f7cac2);
-    color: var(--texto-escuro);
+    background: linear-gradient(135deg, var(--verde-principal), var(--verde-hover));
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(247, 214, 208, 0.6);
+    box-shadow: 0 6px 18px rgba(45, 90, 63, 0.45);
 }
 
 /* Form inputs styling */
 .form-control, .form-select {
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cce0d2;
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
     background-color: #ffffff;
@@ -108,8 +144,42 @@ h1, h2, h3, h4, h5, .serif-font {
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--rosa-pastel);
-    box-shadow: 0 0 0 0.25rem rgba(247, 214, 208, 0.35);
+    border-color: var(--verde-suave);
+    box-shadow: 0 0 0 0.25rem rgba(61, 107, 79, 0.25);
+}
+
+/* Badges em Tons de Verde */
+.badge-verde {
+    background: linear-gradient(135deg, var(--verde-medio), var(--verde-principal)) !important;
+    color: #ffffff !important;
+    border-radius: 20px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(45, 90, 63, 0.2);
+}
+
+.badge-icon-local {
+    height: 18px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.badge-icon-verde {
+    height: 18px;
+    width: auto;
+    object-fit: contain;
+    filter: invert(31%) sepia(26%) saturate(1061%) hue-rotate(95deg) brightness(96%) contrast(92%);
+}
+
+.badge-link {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.badge-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 90, 63, 0.35);
+    color: #ffffff !important;
 }
 
 /* Home: mensagem de celebração e contagem regressiva */
@@ -121,14 +191,14 @@ h1, h2, h3, h4, h5, .serif-font {
     text-transform: uppercase;
     letter-spacing: 4px;
     font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--dourado-suave);
+    font-weight: 600;
+    color: var(--verde-principal);
 }
 
 .divider-dourado-home {
-    height: 1px;
+    height: 2px;
     width: 60px;
-    background: linear-gradient(90deg, transparent, var(--dourado-suave), transparent);
+    background: linear-gradient(90deg, transparent, var(--verde-principal), transparent);
 }
 
 .home-mensagem {
@@ -136,6 +206,7 @@ h1, h2, h3, h4, h5, .serif-font {
     font-family: 'Playfair Display', serif;
     font-style: italic;
     line-height: 1.8;
+    color: var(--texto-escuro);
 }
 
 .countdown {
@@ -145,8 +216,8 @@ h1, h2, h3, h4, h5, .serif-font {
 .countdown-item {
     min-width: 84px;
     padding: 0.9rem 0.6rem;
-    background: linear-gradient(135deg, var(--rosa-pastel), #fcdbd5);
-    border: 1px solid rgba(212, 175, 55, 0.2);
+    background: linear-gradient(135deg, rgba(212, 229, 215, 0.9), rgba(138, 168, 146, 0.85));
+    border: none;
     border-radius: 16px;
     box-shadow: var(--sombra-suave);
     display: flex;
@@ -158,7 +229,7 @@ h1, h2, h3, h4, h5, .serif-font {
     font-family: 'Playfair Display', serif;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--texto-escuro);
+    color: var(--verde-principal);
     line-height: 1;
 }
 
@@ -174,6 +245,6 @@ h1, h2, h3, h4, h5, .serif-font {
 .divider-dourado {
     height: 2px;
     width: 60px;
-    background: linear-gradient(90deg, transparent, var(--dourado-suave), transparent);
+    background: linear-gradient(90deg, transparent, var(--verde-principal), transparent);
     margin: 1.5rem auto;
 }

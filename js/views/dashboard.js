@@ -34,7 +34,6 @@ export default function DashboardView() {
     // Busca e renderiza os dados apenas no carregamento da página
     setTimeout(() => {
         carregarDados();
-        carregarPerfil();
 
         const btnRefresh = document.getElementById('btn-refresh');
         if (btnRefresh) {
@@ -81,7 +80,6 @@ export default function DashboardView() {
                     const dados = await API.migrarBanco();
                     alert('Migrations executadas com sucesso!\n\n' + (dados.output || ''));
                     carregarDados();
-                    carregarPerfil();
                 } catch (err) {
                     alert(err.message || 'Erro ao executar migrate.');
                 } finally {
@@ -98,6 +96,13 @@ export default function DashboardView() {
 
         try {
             const dados = await API.getDashboardNoivos();
+
+            const usuario = dados.usuario || {};
+            document.getElementById('perfil-iniciais').innerText = getInitials(usuario.name);
+            document.getElementById('perfil-nome').innerText = usuario.name || '';
+            document.getElementById('perfil-username').innerText = usuario.username ? '@' + usuario.username : '';
+            document.getElementById('perfil-email').innerText = usuario.email || '';
+            document.getElementById('perfil-role').innerText = usuario.role === 'noivos' ? 'Noivos' : (usuario.role || '');
 
             document.getElementById('total-confirmados').innerText = dados.total_convidados_confirmados || 0;
             document.getElementById('total-aguardando').innerText = dados.total_aguardando_resposta || 0;
@@ -141,24 +146,6 @@ export default function DashboardView() {
                 window.history.pushState({}, '', '/login');
                 window.dispatchEvent(new Event('popstate'));
             }
-        }
-    }
-
-    // Exibe o perfil do usuário noivo em destaque no topo do Painel
-    async function carregarPerfil() {
-        try {
-            const usuario = await API.testarLogin();
-            const set = (id, valor) => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = valor;
-            };
-            set('perfil-iniciais', getInitials(usuario.name));
-            set('perfil-nome', usuario.name || '');
-            set('perfil-username', usuario.username ? '@' + usuario.username : '');
-            set('perfil-email', usuario.email || '');
-            set('perfil-role', usuario.role === 'noivos' ? 'Noivos' : (usuario.role || ''));
-        } catch (err) {
-            // Perfil indisponível; mantém os placeholders exibidos
         }
     }
 

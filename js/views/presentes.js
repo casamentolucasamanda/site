@@ -23,7 +23,7 @@ function abrirModalPix(dados) {
                     <span class="badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill mb-3">${dados.presente.valor}</span>
                     
                     <div class="my-3 p-3 bg-light rounded-3 d-inline-block border">
-                        <img src="${dados.pix.qr_code_url}" alt="QR Code PIX" class="img-fluid rounded shadow-sm" style="max-width: 220px;">
+                        <div id="pix-qrcode"></div>
                     </div>
 
                     <div class="text-start mt-3">
@@ -48,6 +48,19 @@ function abrirModalPix(dados) {
     bsModal.show();
 
     setTimeout(() => {
+        const qrcodeEl = document.getElementById('pix-qrcode');
+        if (qrcodeEl && typeof QRCode !== 'undefined') {
+            qrcodeEl.innerHTML = '';
+            new QRCode(qrcodeEl, {
+                text: dados.pix.payload,
+                width: 220,
+                height: 220,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
         const btnCopiar = document.getElementById('btn-copiar-pix');
         const txtPix = document.getElementById('pix-copia-cola');
         if (btnCopiar && txtPix) {
@@ -70,10 +83,9 @@ export default async function PresentesView() {
     let presentes = [];
     let mensagens = [];
     try {
-        [presentes, mensagens] = await Promise.all([
-            API.getPresentes(),
-            API.getMensagens().catch(() => [])
-        ]);
+        const dados = await API.getPresentes();
+        presentes = dados.presentes || [];
+        mensagens = dados.mensagens || [];
     } catch (err) {
         console.error('Erro ao buscar lista de presentes:', err);
     }
@@ -139,9 +151,18 @@ export default async function PresentesView() {
             `;
         }
 
+        const imagemHtml = item.imagem_url 
+            ? `<div class="position-relative overflow-hidden rounded mb-3" style="height: 180px;">
+                    <img src="${item.imagem_url}" alt="${item.nome}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'p-3 bg-light rounded text-center text-muted d-flex align-items-center justify-content-center\' style=\'height: 140px;\'><span class=\'fs-1\'>🎁</span></div>';">
+               </div>`
+            : `<div class="p-3 bg-light rounded text-center mb-3 text-muted d-flex align-items-center justify-content-center" style="height: 140px;">
+                    <span class="fs-1">🎁</span>
+               </div>`;
+
         return `
             <div class="col-md-4 mb-4">
                 <div class="card h-100 border-0 shadow-sm bg-white p-3 card-casamento">
+                    ${imagemHtml}
                     <div class="card-body text-center d-flex flex-column justify-content-between p-2">
                         <div>
                             <h5 class="card-title serif-font fw-bold text-dark mb-2">${item.nome}</h5>
