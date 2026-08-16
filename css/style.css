@@ -13,7 +13,7 @@
 }
 
 body {
-    background: linear-gradient(rgba(232, 239, 233, 0.45), rgba(232, 239, 233, 0.45)), url('site/images/fundo-home.jpg') no-repeat center center fixed;
+    background: linear-gradient(rgba(232, 239, 233, 0.45), rgba(232, 239, 233, 0.45)), url('/site/images/fundo-home.jpg') no-repeat center center fixed;
     background-size: cover;
     color: var(--texto-escuro);
     font-family: 'Montserrat', sans-serif;
