@@ -251,14 +251,21 @@ export default function PresentesNoivosView() {
                         </div>
                     </div>` : '';
 
+                const thumbHtml = item.imagem_url
+                    ? `<img src="${item.imagem_url}" alt="${item.nome}" class="rounded me-3 flex-shrink-0" style="width: 55px; height: 55px; object-fit: cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<div class=\'rounded me-3 flex-shrink-0 bg-light d-flex align-items-center justify-content-center\' style=\'width: 55px; height: 55px;\'><span class=\'fs-5\'>🎁</span></div>';">`
+                    : `<div class="rounded me-3 flex-shrink-0 bg-light d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;"><span class="fs-5">🎁</span></div>`;
+
                 return `
                     <div class="card mb-3 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-                                <div>
-                                    <h6 class="mb-1">${item.nome} <span class="text-muted fw-normal">(${item.valor_formatado})</span></h6>
-                                    ${item.descricao ? `<small class="text-muted d-block">${item.descricao}</small>` : ''}
-                                    <small class="text-muted">${item.reservado ? `Doador: ${item.comprador ? item.comprador.name : '—'}` : 'Aguardando presenteação'}</small>
+                                <div class="d-flex align-items-center">
+                                    ${thumbHtml}
+                                    <div>
+                                        <h6 class="mb-1">${item.nome} <span class="text-muted fw-normal">(${item.valor_formatado})</span></h6>
+                                        ${item.descricao ? `<small class="text-muted d-block">${item.descricao}</small>` : ''}
+                                        <small class="text-muted">${item.reservado ? `Doador: ${item.comprador ? item.comprador.name : '—'}` : 'Aguardando presenteação'}</small>
+                                    </div>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center flex-wrap">
                                     ${badgeStatus}
