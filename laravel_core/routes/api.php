@@ -482,6 +482,26 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
         ], 201);
     });
 
+    // Duplica um presente existente sem vincular convidado
+    Route::post('/presentes/{presente}/duplicar', function (App\Models\Presente $presente) {
+        $novo = App\Models\Presente::create([
+            'nome' => $presente->nome . ' (cópia)',
+            'descricao' => $presente->descricao,
+            'valor_estimado' => $presente->valor_estimado,
+            'imagem_url' => $presente->imagem_url,
+        ]);
+
+        return response()->json([
+            'status' => 'sucesso',
+            'mensagem' => 'Presente duplicado com sucesso!',
+            'presente' => [
+                'id' => $novo->id,
+                'nome' => $novo->nome,
+                'valor_formatado' => $novo->valor_estimado ? 'R$ ' . number_format($novo->valor_estimado, 2, ',', '.') : null,
+            ],
+        ], 201);
+    });
+
     // Atualiza os dados de um presente existente pelos noivos
     Route::put('/presentes/{presente}', function (Request $request, App\Models\Presente $presente) {
         $validated = $request->validate([
