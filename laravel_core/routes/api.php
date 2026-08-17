@@ -141,6 +141,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'descricao' => $p->descricao,
                 'valor_estimado' => (float)$p->valor_estimado,
                 'valor_formatado' => 'R$ ' . number_format($p->valor_estimado, 2, ',', '.'),
+                'imagem_url' => $p->imagem_url,
                 'reservado' => !is_null($p->user_id),
                 'reservado_por_mim' => $p->user_id === auth()->id(),
                 'recebido' => (bool)$p->recebido,
@@ -406,6 +407,7 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
                 'descricao' => $p->descricao,
                 'valor_estimado' => (float)$p->valor_estimado,
                 'valor_formatado' => 'R$ ' . number_format($p->valor_estimado, 2, ',', '.'),
+                'imagem_url' => $p->imagem_url,
                 'reservado' => !is_null($p->user_id),
                 'recebido' => (bool)$p->recebido,
                 'comprador' => $p->comprador ? [
@@ -458,12 +460,14 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
             'nome' => ['required', 'string', 'max:255'],
             'descricao' => ['nullable', 'string', 'max:500'],
             'valor_estimado' => ['nullable', 'numeric', 'min:0'],
+            'imagem_url' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $presente = App\Models\Presente::create([
             'nome' => trim($validated['nome']),
             'descricao' => $validated['descricao'] ?? null,
             'valor_estimado' => $validated['valor_estimado'] ?? null,
+            'imagem_url' => $validated['imagem_url'] ?? null,
         ]);
 
         return response()->json([
@@ -473,6 +477,7 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
                 'id' => $presente->id,
                 'nome' => $presente->nome,
                 'valor_formatado' => $presente->valor_estimado ? 'R$ ' . number_format($presente->valor_estimado, 2, ',', '.') : null,
+                'imagem_url' => $presente->imagem_url,
             ],
         ], 201);
     });
@@ -483,18 +488,20 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
             'nome' => ['required', 'string', 'max:255'],
             'descricao' => ['nullable', 'string', 'max:500'],
             'valor_estimado' => ['nullable', 'numeric', 'min:0'],
+            'imagem_url' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $presente->update([
             'nome' => trim($validated['nome']),
             'descricao' => $validated['descricao'] ?? null,
             'valor_estimado' => $validated['valor_estimado'] ?? null,
+            'imagem_url' => $validated['imagem_url'] ?? null,
         ]);
 
         return response()->json([
             'status' => 'sucesso',
             'mensagem' => 'Presente atualizado com sucesso!',
-            'presente' => $presente->only(['id', 'nome', 'descricao', 'valor_estimado']),
+            'presente' => $presente->only(['id', 'nome', 'descricao', 'valor_estimado', 'imagem_url']),
         ]);
     });
 

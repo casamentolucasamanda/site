@@ -153,7 +153,7 @@ export default async function PresentesView() {
 
         const imagemHtml = item.imagem_url 
             ? `<div class="position-relative overflow-hidden rounded mb-3" style="height: 180px;">
-                    <img src="${item.imagem_url}" alt="${item.nome}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'p-3 bg-light rounded text-center text-muted d-flex align-items-center justify-content-center\' style=\'height: 140px;\'><span class=\'fs-1\'>🎁</span></div>';">
+                    <img src="${item.imagem_url}" alt="${item.nome}" class="w-100 h-100" style="object-fit: cover;" referrerpolicy="no-referrer" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'p-3 bg-light rounded text-center text-muted d-flex align-items-center justify-content-center\' style=\'height: 140px;\'><span class=\'fs-1\'>🎁</span></div>';">
                </div>`
             : `<div class="p-3 bg-light rounded text-center mb-3 text-muted d-flex align-items-center justify-content-center" style="height: 140px;">
                     <span class="fs-1">🎁</span>
