@@ -56,7 +56,7 @@ export default function HomeView() {
                 <div class="card-casamento p-5 home-hero">
                     <p class="home-eyebrow mb-2">Com imensa alegria, convidamos você para celebrar o nosso casamento</p>
                     <h1 class="display-4 mb-1 serif-font">Amanda & Lucas</h1>
-                    <div class="brand-cursive mb-3">Vamos nos casar!</div>
+                    <div class="brand-cursive mb-3">Vamos casar!</div>
 
                     <div class="d-flex justify-content-center align-items-center gap-3 my-3">
                         <span class="divider-dourado-home"></span>
