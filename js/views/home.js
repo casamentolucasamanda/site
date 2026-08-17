@@ -54,9 +54,9 @@ export default function HomeView() {
         <div class="row justify-content-center text-center">
             <div class="col-lg-9">
                 <div class="card-casamento p-5 home-hero">
-                    <p class="home-eyebrow mb-2">Com imensa alegria, convidamos você a celebrar conosco</p>
+                    <p class="home-eyebrow mb-2">Com imensa alegria, convidamos você para celebrar o nosso casamento</p>
                     <h1 class="display-4 mb-1 serif-font">Amanda & Lucas</h1>
-                    <div class="brand-cursive mb-3">estamos nos casando!</div>
+                    <div class="brand-cursive mb-3">Vamos nos casar!</div>
 
                     <div class="d-flex justify-content-center align-items-center gap-3 my-3">
                         <span class="divider-dourado-home"></span>
@@ -78,7 +78,7 @@ export default function HomeView() {
                     </div>
 
                     <hr class="my-4" style="opacity: 0.1;">
-                    <p class="mb-4 text-muted">Para acessar a lista de presentes, confirmar presença e conferir o endereço do local, faça login com os dados enviados no seu convite.</p>
+                    <p class="mb-4 text-muted">Faça login com os dados do seu convite para confirmar sua presença, acessar a lista de presentes e conferir todos os detalhes da festa.</p>
                     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
                         <a href="/login" class="btn btn-casamento btn-lg px-4" data-link>Acessar Área Restrita</a>
                     </div>
