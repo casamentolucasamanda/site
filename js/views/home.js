@@ -56,7 +56,7 @@ export default function HomeView() {
                 <div class="card-casamento p-5 home-hero">
                     <p class="home-eyebrow mb-2">Com imensa alegria, convidamos você para celebrar o nosso casamento</p>
                     <h1 class="display-4 mb-1 serif-font">Amanda & Lucas</h1>
-                    <div class="brand-cursive mb-3">Vamos nos casar!</div>
+                    <div class="brand-cursive mb-3">Vamos casar!</div>
 
                     <div class="d-flex justify-content-center align-items-center gap-3 my-3">
                         <span class="divider-dourado-home"></span>
@@ -68,11 +68,11 @@ export default function HomeView() {
 
                     <div class="d-flex justify-content-center gap-2 my-4 flex-wrap align-items-center">
                         <a href="/cerimonia" data-link class="badge badge-verde badge-link p-2 px-3 m-1 d-inline-flex align-items-center gap-2 text-decoration-none">
-                            <img src="https://casamentolucasamanda.github.io/site/images/icone-local.png" alt="Cerimônia" class="badge-icon-local">
+                            <img src="/images/icone-local.png" alt="Cerimônia" class="badge-icon-local">
                             <span>Cerimônia Civil (11h)</span>
                         </a>
                         <a href="/recepcao" data-link class="badge badge-verde badge-link p-2 px-3 m-1 d-inline-flex align-items-center gap-2 text-decoration-none">
-                            <img src="https://casamentolucasamanda.github.io/site/images/icone-recepcao.png" alt="Recepção" class="badge-icon-local">
+                            <img src="/images/icone-recepcao.png" alt="Recepção" class="badge-icon-local">
                             <span>Recepção (12h30)</span>
                         </a>
                     </div>

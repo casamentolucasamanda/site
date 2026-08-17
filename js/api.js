@@ -202,6 +202,12 @@ export const API = {
         });
     },
 
+    async duplicarPresente(presenteId) {
+        return await safeJsonFetch(`/api/presentes/${presenteId}/duplicar`, {
+            method: 'POST'
+        });
+    },
+
     async atualizarPresente(presenteId, nome, descricao, valorEstimado, imagemUrl) {
         return await safeJsonFetch(`/api/presentes/${presenteId}`, {
             method: 'PUT',
