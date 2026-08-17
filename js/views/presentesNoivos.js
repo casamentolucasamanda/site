@@ -155,6 +155,21 @@ export default function PresentesNoivosView() {
                     });
                 }
 
+                if (e.target.matches('.btn-duplicar-presente')) {
+                    const btn = e.target;
+                    btn.disabled = true;
+                    btn.innerText = 'Duplicando...';
+                    try {
+                        await API.duplicarPresente(btn.getAttribute('data-presente-id'));
+                        alert('Presente duplicado com sucesso!');
+                        carregarPresentes();
+                    } catch (err) {
+                        alert(err.message || 'Erro ao duplicar presente.');
+                        btn.disabled = false;
+                        btn.innerText = '📋 Duplicar';
+                    }
+                }
+
                 if (e.target.matches('.btn-confirmar-recebido')) {
                     const btn = e.target;
                     btn.disabled = true;
@@ -271,6 +286,7 @@ export default function PresentesNoivosView() {
                                     ${badgeStatus}
                                     ${btnRecebido}
                                     <button class="btn btn-outline-primary btn-sm btn-editar-presente text-nowrap" data-presente-id="${item.id}">✏️ Editar</button>
+                                    <button class="btn btn-outline-secondary btn-sm btn-duplicar-presente text-nowrap" data-presente-id="${item.id}">📋 Duplicar</button>
                                 </div>
                             </div>
                             ${areaConversa}
