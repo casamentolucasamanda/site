@@ -77,11 +77,7 @@ export default function HomeView() {
                         </a>
                     </div>
 
-                    <hr class="my-4" style="opacity: 0.1;">
-                    <p class="mb-4 text-muted">Faça login com os dados do seu convite para confirmar sua presença, acessar a lista de presentes e conferir todos os detalhes da festa.</p>
-                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                        <a href="/login" class="btn btn-casamento btn-lg px-4" data-link>Acessar Área Restrita</a>
-                    </div>
+                   
                 </div>
             </div>
         </div>
