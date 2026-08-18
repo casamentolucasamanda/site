@@ -209,7 +209,6 @@ Route::middleware('auth:sanctum')->group(function () {
             ],
             'pix' => [
                 'chave' => $pixConfig->chave_pix,
-                'payload' => $pixPayload,
             ]
         ]);
     });
