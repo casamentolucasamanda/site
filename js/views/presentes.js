@@ -19,12 +19,13 @@ function abrirModalPix(dados) {
                 </div>
                 <div class="modal-body text-center p-4">
                     <p class="text-muted mb-1 fs-6">Você reservou:</p>
-                    <h5 class="fw-bold text-dark mb-1">${dados.presente.nome}</h5>
-                    <span class="badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill mb-3">${dados.presente.valor}</span>
+                    <h5 class="fw-bold text-dark mb-3">${dados.presente.nome}</h5>
                     
                     <div class="my-3 p-3 bg-light rounded-3 d-inline-block border">
                         <div id="pix-qrcode"></div>
                     </div>
+
+                    <div class="d-block badge bg-light text-dark border fs-6 px-3 py-2 rounded-pill mb-3">${dados.presente.valor}</div>
 
                     <div class="text-start mt-3">
                         <label class="form-label fw-semibold small text-muted">Chave PIX (E-mail):</label>
@@ -66,14 +67,16 @@ function abrirModalPix(dados) {
         if (btnCopiar && txtPix) {
             btnCopiar.addEventListener('click', () => {
                 txtPix.select();
-                navigator.clipboard.writeText(txtPix.value).then(() => {
+                txtPix.setSelectionRange(0, 99999);
+                const copiado = document.execCommand('copy');
+                if (copiado) {
                     btnCopiar.innerText = 'Copiado! ✓';
                     btnCopiar.classList.replace('btn-outline-secondary', 'btn-success');
                     setTimeout(() => {
                         btnCopiar.innerText = 'Copiar';
                         btnCopiar.classList.replace('btn-success', 'btn-outline-secondary');
                     }, 3000);
-                });
+                }
             });
         }
     }, 100);
@@ -112,7 +115,7 @@ function gerarPix(chavePix, valor, nomeRecebedor, cidade, txid = '***') {
     chavePix.length.toString().padStart(2, "0") +
     chavePix;
 
-  const txidFormatado = toPascalCase(txid);
+  const txidFormatado = toPascalCase(txid).substring(0, 25);
   const additionalData =
     "05" +
     txidFormatado.length.toString().padStart(2, "0") +
@@ -146,10 +149,12 @@ function gerarPix(chavePix, valor, nomeRecebedor, cidade, txid = '***') {
 export default async function PresentesView() {
     let presentes = [];
     let mensagens = [];
+    let pixChave = '';
     try {
         const dados = await API.getPresentes();
         presentes = dados.presentes || [];
         mensagens = dados.mensagens || [];
+        pixChave = dados.pix_chave || '';
     } catch (err) {
         console.error('Erro ao buscar lista de presentes:', err);
     }
@@ -162,30 +167,36 @@ export default async function PresentesView() {
             if (e.target.matches('.btn-presentear')) {
                 const btn = e.target;
                 const presenteId = btn.getAttribute('data-id');
-                
+                const item = presentes.find(p => p.id === presenteId);
+                if (!item) return;
+
+                if (item.reservado_por_mim) {
+                    abrirModalPix({
+                        presente: { nome: item.nome, valor: item.valor_formatado },
+                        pix: { chave: pixChave, payload: gerarPix(pixChave, item.valor_estimado, 'LUCAS GABRIEL', 'SAO PAULO', item.nome) }
+                    });
+                    return;
+                }
+
                 const originalText = btn.innerText;
                 btn.disabled = true;
                 btn.innerText = 'Gerando PIX...';
 
                 try {
-                    const dados = await API.escolherPresente(presenteId);
-                    
-                    const valorNumerico = dados.presente.valor.replace(/[^\d,]/g, '').replace(',', '.');
-                    dados.pix.payload = gerarPix(
-                        dados.pix.chave,
-                        valorNumerico,
-                        'LUCAS GABRIEL',
-                        'SAO PAULO',
-                        dados.presente.nome
-                    );
-                    
-                    // Atualiza visualmente o card
+                    const resp = await API.escolherPresente(presenteId);
+
+                    item.reservado_por_mim = true;
+                    item.reservado = true;
+                    pixChave = resp.pix?.chave || pixChave;
+
                     btn.classList.replace('btn-casamento', 'btn-success');
                     btn.innerText = '🎁 Ver QR Code PIX';
                     btn.disabled = false;
-                    
-                    // Abre a tela de pagamento por QR Code PIX
-                    abrirModalPix(dados);
+
+                    abrirModalPix({
+                        presente: { nome: item.nome, valor: item.valor_formatado },
+                        pix: { chave: pixChave, payload: gerarPix(pixChave, item.valor_estimado, 'LUCAS GABRIEL', 'SAO PAULO', item.nome) }
+                    });
 
                 } catch (err) {
                     alert(err.message || 'Sessão expirada. Faça login para escolher um presente.');
