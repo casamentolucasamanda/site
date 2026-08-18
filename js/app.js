@@ -80,11 +80,13 @@ function atualizarMenu() {
     }
 }
 
+let sessaoVerificada = false;
+
 const router = async () => {
     const path = window.location.pathname;
     const rotasProtegidas = ['/confirmar-presenca', '/lista-de-presentes', '/local', '/cerimonia', '/recepcao', '/dashboard', '/painel-presentes', '/gerenciar-convidados'];
 
-    if (isAuthenticated() || rotasProtegidas.includes(path)) {
+    if (!sessaoVerificada && (isAuthenticated() || rotasProtegidas.includes(path))) {
         try {
             const dataMe = await API.getMe();
             if (dataMe && dataMe.usuario) {
@@ -92,7 +94,9 @@ const router = async () => {
                 localStorage.setItem('user_role', dataMe.usuario.role);
                 localStorage.setItem('user_name', dataMe.usuario.name);
             }
+            sessaoVerificada = true;
         } catch (e) {
+            sessaoVerificada = true;
             if (rotasProtegidas.includes(path)) {
                 sessionStorage.setItem('redirect_after_login', path);
                 window.history.pushState({}, '', '/login');

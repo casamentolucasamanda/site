@@ -78,6 +78,70 @@ function abrirModalPix(dados) {
         }
     }, 100);
 }
+function crc16(payload) {
+  let crc = 0xffff;
+
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+
+    for (let j = 0; j < 8; j++) {
+      crc =
+        crc & 0x8000
+          ? ((crc << 1) ^ 0x1021)
+          : (crc << 1);
+
+      crc &= 0xffff;
+    }
+  }
+
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+function toPascalCase(str) {
+  return str
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('');
+}
+
+function gerarPix(chavePix, valor, nomeRecebedor, cidade, txid = '***') {
+  const merchantAccount =
+    "0014BR.GOV.BCB.PIX" +
+    "01" +
+    chavePix.length.toString().padStart(2, "0") +
+    chavePix;
+
+  const txidFormatado = toPascalCase(txid);
+  const additionalData =
+    "05" +
+    txidFormatado.length.toString().padStart(2, "0") +
+    txidFormatado;
+
+  const valorFormatado = Number(valor).toFixed(2);
+
+  const payloadSemCRC =
+    "000201" +
+    "26" +
+    merchantAccount.length.toString().padStart(2, "0") +
+    merchantAccount +
+    "52040000" +
+    "5303986" +
+    "54" +
+    valorFormatado.length.toString().padStart(2, "0") +
+    valorFormatado +
+    "5802BR" +
+    "59" + nomeRecebedor.length.toString().padStart(2, "0") + nomeRecebedor +
+    "60" + cidade.length.toString().padStart(2, "0") + cidade +
+    "62" +
+    additionalData.length.toString().padStart(2, "0") +
+    additionalData +
+    "6304";
+
+  const crc = crc16(payloadSemCRC);
+
+  return payloadSemCRC + crc;
+}
 
 export default async function PresentesView() {
     let presentes = [];
@@ -105,6 +169,15 @@ export default async function PresentesView() {
 
                 try {
                     const dados = await API.escolherPresente(presenteId);
+                    
+                    const valorNumerico = dados.presente.valor.replace(/[^\d,]/g, '').replace(',', '.');
+                    dados.pix.payload = gerarPix(
+                        dados.pix.chave,
+                        valorNumerico,
+                        'LUCAS GABRIEL',
+                        'SAO PAULO',
+                        dados.presente.nome
+                    );
                     
                     // Atualiza visualmente o card
                     btn.classList.replace('btn-casamento', 'btn-success');
