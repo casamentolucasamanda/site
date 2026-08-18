@@ -99,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return response()->json([
             'presentes' => $presentes,
+            'pix_chave' => 'chave_pix',
             'mensagens' => $mensagens->map(fn ($m) => [
                 'id' => $m->id,
                 'presente' => $m->presente ? $m->presente->nome : null,
@@ -136,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'valor' => $valorFormatado,
             ],
             'pix' => [
-                'chave' => 'chave',
+                'chave' => 'chave_pix',
             ]
         ]);
     });
@@ -325,8 +326,6 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
             ->orderByDesc('updated_at')
             ->get();
 
-        $pixConfig = App\Models\PixConfig::first();
-
         return response()->json([
             'presentes' => $presentes->map(fn ($p) => [
                 'id' => $p->id,
@@ -347,14 +346,8 @@ Route::middleware(['auth:sanctum', 'noivos'])->group(function () {
                     'criado_em' => $m->created_at ? $m->created_at->format('d/m/Y \à\s H:i') : null,
                 ]),
             ]),
-            'pix_config' => $pixConfig ? $pixConfig->only([
-                'chave_pix',
-                'nome_recebedor',
-                'cidade',
-                'mcc',
-                'txid',
-            ]) : [
-                'chave_pix' => '',
+            'pix_config' => [
+                'chave_pix' => 'chave_pix',
                 'nome_recebedor' => '',
                 'cidade' => '',
                 'mcc' => '0000',
