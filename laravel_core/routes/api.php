@@ -5,69 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Artisan;
 
-// --- HELPERS PIX (EMV QR Code) ---
-// Calcula o CRC16-CCITT (polinômio 0x1021) do payload PIX
-function calcularCrc16($payload)
-{
-    $crc = 0xFFFF;
-    $length = strlen($payload);
-    for ($i = 0; $i < $length; $i++) {
-        $crc ^= (ord($payload[$i]) << 8);
-        for ($j = 0; $j < 8; $j++) {
-            if ($crc & 0x8000) {
-                $crc = (($crc << 1) ^ 0x1021) & 0xFFFF;
-            } else {
-                $crc = ($crc << 1) & 0xFFFF;
-            }
-        }
-    }
-    return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
-}
-
-// Monta o payload EMV válido do PIX a partir da configuração e do valor
-function gerarPayloadPix($config, $valor)
-{
-    // Campo 26 — Merchant Account Information (br.gov.bcb.pix + chave)
-    $maInfo = '0014BR.GOV.BCB.PIX' . '01' . str_pad(strlen($config->chave_pix), 2, '0', STR_PAD_LEFT) . $config->chave_pix;
-    $payload = '000201';
-    $payload .= '26' . str_pad(strlen($maInfo), 2, '0', STR_PAD_LEFT) . $maInfo;
-
-    // Campo 52 — Categoria do comerciante (MCC)
-    $payload .= '5204' . str_pad((string)$config->mcc, 4, '0', STR_PAD_RIGHT);
-
-    // Campo 53 — Moeda (986 = BRL)
-    $payload .= '5303986';
-
-    // Campo 54 — Valor
-    $valorStr = number_format((float)$valor, 2, '.', '');
-    $payload .= '54' . str_pad(strlen($valorStr), 2, '0', STR_PAD_LEFT) . $valorStr;
-
-    // Campo 58 — País (BR)
-    $payload .= '5802BR';
-
-    // Campo 59 — Nome do recebedor (máx. 25)
-    $nome = mb_substr($config->nome_recebedor, 0, 25);
-    $payload .= '59' . str_pad(strlen($nome), 2, '0', STR_PAD_LEFT) . $nome;
-
-    // Campo 60 — Cidade (máx. 15)
-    $cidade = mb_substr($config->cidade, 0, 15);
-    $payload .= '60' . str_pad(strlen($cidade), 2, '0', STR_PAD_LEFT) . $cidade;
-
-    // Campo 62 — Dados adicionais (subcampo 05 = txid)
-    $txid = $config->txid ?: '***';
-    $txidField = '05' . str_pad(strlen($txid), 2, '0', STR_PAD_LEFT) . $txid;
-    $payload .= '62' . str_pad(strlen($txidField), 2, '0', STR_PAD_LEFT) . $txidField;
-
-    // Campo 63 — CRC16
-    $payload .= '6304' . calcularCrc16($payload . '6304');
-
-    return $payload;
-}
-
-
-
-
-
 
 
 // --- ROTAS PÚBLICAS DE AUTENTICAÇÃO ---
@@ -188,16 +125,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $presente->user_id = $request->user()->id;
         $presente->save();
 
-        $pixConfig = App\Models\PixConfig::first();
-        if (!$pixConfig) {
-            return response()->json([
-                'status' => 'erro',
-                'mensagem' => 'O PIX ainda não foi configurado pelos noivos. Tente novamente mais tarde.'
-            ], 422);
-        }
-
         $valorFormatado = 'R$ ' . number_format($presente->valor_estimado, 2, ',', '.');
-        $pixPayload = gerarPayloadPix($pixConfig, $presente->valor_estimado);
 
         return response()->json([
             'status' => 'sucesso',
@@ -208,7 +136,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 'valor' => $valorFormatado,
             ],
             'pix' => [
-                'chave' => $pixConfig->chave_pix,
+                'chave' => 'chave',
             ]
         ]);
     });
